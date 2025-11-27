@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Setup Base */
+html, body {
+    height: 100%;
+    background-color: #121212; /* Deep Charcoal */
+    font-family: 'Inter', sans-serif;
+    color: #E0E0E0;
+    overflow: hidden; /* App-like feel */
+}
+
+/* Scrollbar Invisível mas funcional */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 10px;
+}
+
+/* Efeito Glassmorphism (Vidro) */
+.glass-panel {
+    background: rgba(30, 30, 30, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Botão Premium com Glow */
+.btn-glow {
+    background: linear-gradient(135deg, #F47F20 0%, #8E24AA 100%); /* Orange to Purple */
+    box-shadow: 0 0 20px rgba(244, 127, 32, 0.4);
+    transition: all 0.3s ease;
+}
+.btn-glow:hover {
+    box-shadow: 0 0 30px rgba(244, 127, 32, 0.6);
+    transform: translateY(-1px);
+}
+
+/* Indicador Ativo (Sidebar) */
+.nav-active {
+    position: relative;
+    background: rgba(255, 255, 255, 0.03);
+    color: white;
+}
+.nav-active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 10%;
+    height: 80%;
+    width: 3px;
+    background-color: #F47F20; /* Minimalist Orange Line */
+    border-radius: 0 4px 4px 0;
+    box-shadow: 2px 0 10px rgba(244, 127, 32, 0.5);
+}
+
+/* Skeleton Loader Animation */
+@keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+}
+.skeleton {
+    animation: shimmer 2s infinite linear;
+    background: linear-gradient(to right, #1e1e1e 4%, #2a2a2a 25%, #1e1e1e 36%);
+    background-size: 1000px 100%;
+}

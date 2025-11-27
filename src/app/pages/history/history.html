@@ -1,0 +1,152 @@
+<div class="p-8 text-white h-full flex flex-col bg-[#0F0F0F]">
+  
+  <div class="flex justify-between items-end mb-8">
+    <div>
+      <h1 class="text-3xl font-bold mb-1 flex items-center gap-3">
+        <span class="w-2 h-8 rounded-full globo-gradient-bg block"></span>
+        Histórico de Análise
+      </h1>
+      <p class="text-gray-500 text-sm ml-5">Visualize e audite todas as ocorrências detectadas pela IA.</p>
+    </div>
+    
+    <div class="flex gap-3">
+      <button (click)="download('csv')" class="bg-[#1E1E1E] border border-white/10 hover:bg-[#333] hover:border-white/30 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition flex items-center gap-2">
+        <i class="fas fa-file-csv text-green-500"></i> Exportar CSV
+      </button>
+      <button (click)="download('pdf')" class="bg-[#1E1E1E] border border-white/10 hover:bg-[#333] hover:border-white/30 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition flex items-center gap-2">
+        <i class="fas fa-file-pdf text-red-500"></i> Exportar PDF
+      </button>
+    </div>
+  </div>
+
+  <div class="bg-[#1E1E1E] p-5 rounded-2xl border border-white/5 shadow-lg mb-8 flex flex-wrap gap-6 items-end">
+    <div class="flex-1 min-w-[200px]">
+      <label class="text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-2 block ml-1">Período Inicial</label>
+      <input type="date" [(ngModel)]="filters.start_date" class="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-[#00BCE4] transition-colors text-sm">
+    </div>
+    <div class="flex-1 min-w-[200px]">
+      <label class="text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-2 block ml-1">Período Final</label>
+      <input type="date" [(ngModel)]="filters.end_date" class="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-[#00BCE4] transition-colors text-sm">
+    </div>
+    <div class="flex-1 min-w-[200px]">
+      <label class="text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-2 block ml-1">Status da Ocorrência</label>
+      <div class="relative">
+        <select [(ngModel)]="filters.status" class="w-full bg-black/30 border border-white/10 rounded-xl pl-4 pr-10 py-2.5 text-white outline-none focus:border-[#00BCE4] appearance-none cursor-pointer text-sm">
+          <option value="" class="bg-[#1E1E1E]">Todos os Status</option>
+          <option value="Aprovado" class="bg-[#1E1E1E]">✅ Aprovado</option>
+          <option value="Rejeitado" class="bg-[#1E1E1E]">❌ Rejeitado</option>
+          <option value="Não Validado" class="bg-[#1E1E1E]">⚠️ Não Validado</option>
+        </select>
+        <i class="fas fa-chevron-down absolute right-4 top-3.5 text-gray-500 text-xs pointer-events-none"></i>
+      </div>
+    </div>
+    <button (click)="loadData()" class="globo-gradient-bg text-white px-8 py-2.5 rounded-xl font-bold shadow-lg shadow-orange-500/20 hover:brightness-110 transition-all text-sm h-[42px]">
+      Filtrar Resultados
+    </button>
+  </div>
+
+  <div class="bg-[#1E1E1E] rounded-2xl border border-white/5 overflow-hidden shadow-2xl flex-1 flex flex-col">
+    <div class="overflow-x-auto flex-1">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-black/40 border-b border-white/10 text-gray-400 text-[11px] uppercase tracking-widest font-bold">
+            <th class="p-5">Data / Hora</th>
+            <th class="p-5">Programa</th>
+            <th class="p-5">Tipo de Falha</th>
+            <th class="p-5">Severidade</th>
+            <th class="p-5">Status</th>
+            <th class="p-5 text-center">Ações</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-white/5">
+          <tr *ngFor="let item of historyData" class="hover:bg-white/[0.02] transition-colors group">
+            
+            <td class="p-5 text-sm font-mono text-gray-300 border-l-2 border-transparent group-hover:border-[#F47F20]">
+              {{ item.data_hora | date:'dd/MM/yy' }} <span class="text-gray-600 mx-1">|</span> {{ item.data_hora | date:'HH:mm' }}
+            </td>
+            
+            <td class="p-5">
+              <span class="text-white font-medium text-sm">{{ item.programa || 'Stream Geral' }}</span>
+            </td>
+            
+            <td class="p-5">
+              <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-gray-300">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#00BCE4]"></span>
+                {{ item.tipo_falha }}
+              </span>
+            </td>
+            
+            <td class="p-5">
+              <span class="text-xs font-bold" [ngClass]="{
+                'text-red-400': item.nivel === 'Crítico',
+                'text-yellow-400': item.nivel === 'Alerta',
+                'text-green-400': item.nivel === 'Info'
+              }">{{ item.nivel || '-' }}</span>
+            </td>
+            
+            <td class="p-5">
+              <div class="inline-flex items-center px-2.5 py-1 rounded-md border text-xs font-bold"
+                [ngClass]="{
+                  'bg-green-500/10 border-green-500/20 text-green-400': item.status === 'Aprovado',
+                  'bg-red-500/10 border-red-500/20 text-red-400': item.status === 'Rejeitado',
+                  'bg-yellow-500/10 border-yellow-500/20 text-yellow-400': item.status === 'Não Validado'
+                }">
+                <i class="fas mr-2 text-[10px]" [ngClass]="{
+                  'fa-check-circle': item.status === 'Aprovado',
+                  'fa-times-circle': item.status === 'Rejeitado',
+                  'fa-exclamation-triangle': item.status === 'Não Validado'
+                }"></i>
+                {{ item.status }}
+              </div>
+            </td>
+            
+            <td class="p-5">
+              <div class="flex justify-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity">
+                <button (click)="openDetails(item.id)" class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition flex items-center justify-center" title="Ver Detalhes">
+                  <i class="fas fa-eye"></i>
+                </button>
+                <button (click)="approve(item.id)" class="w-8 h-8 rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500 hover:text-white transition flex items-center justify-center" title="Aprovar">
+                  <i class="fas fa-check"></i>
+                </button>
+                <button (click)="reject(item.id)" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition flex items-center justify-center" title="Rejeitar">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          
+          <tr *ngIf="historyData.length === 0">
+            <td colspan="6" class="p-12 text-center">
+              <div class="flex flex-col items-center text-gray-600">
+                <i class="fas fa-search text-4xl mb-3 opacity-50"></i>
+                <span class="text-sm">Nenhum registro encontrado para os filtros selecionados.</span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="p-4 border-t border-white/5 bg-black/20 flex justify-between items-center">
+      <span class="text-xs text-gray-500">Mostrando {{ historyData.length }} registros</span>
+      <div class="flex gap-2">
+        <button (click)="changePage(-1)" [disabled]="page===1" class="px-4 py-2 bg-[#333] rounded-lg text-xs font-bold hover:bg-white hover:text-black disabled:opacity-50 disabled:hover:bg-[#333] disabled:hover:text-white transition">
+          Anterior
+        </button>
+        <div class="px-4 py-2 bg-black/40 rounded-lg text-xs font-mono text-gray-400 border border-white/5">
+          Página {{ page }}
+        </div>
+        <button (click)="changePage(1)" class="px-4 py-2 bg-[#333] rounded-lg text-xs font-bold hover:bg-white hover:text-black disabled:opacity-50 transition">
+          Próxima
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<app-occurrence-details 
+  *ngIf="selectedOccurrenceId" 
+  [occurrenceId]="selectedOccurrenceId" 
+  (statusChanged)="loadData()"
+  (close)="closeDetails()">
+</app-occurrence-details>

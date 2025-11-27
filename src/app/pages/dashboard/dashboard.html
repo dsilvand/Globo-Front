@@ -1,0 +1,33 @@
+<div class="p-6 text-white">
+  <h1 class="text-2xl font-bold mb-6">Estatísticas</h1>
+
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+    <div class="bg-globo-card p-4 rounded border border-gray-700">
+      <h3 class="text-gray-400 text-sm">Total Validado</h3>
+      <p class="text-3xl font-bold text-globo-success">{{ summary?.total_validated_occurrences || 0 }}</p>
+    </div>
+    <div class="bg-globo-card p-4 rounded border border-gray-700">
+      <h3 class="text-gray-400 text-sm">Concluído Hoje</h3>
+      <p class="text-3xl font-bold text-globo-primary">{{ summary?.completed_today || 0 }}</p>
+    </div>
+    <div class="bg-globo-card p-4 rounded border border-gray-700">
+      <h3 class="text-gray-400 text-sm">Mês Atual</h3>
+      <p class="text-3xl font-bold">{{ summary?.monthly_comparison?.current_month || 0 }}</p>
+    </div>
+    <div class="bg-globo-card p-4 rounded border border-gray-700">
+      <h3 class="text-gray-400 text-sm">Rejeitados</h3>
+      <p class="text-3xl font-bold text-globo-danger">{{ summary?.status_distribution?.rejected || 0 }}</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-globo-card p-4 rounded border border-gray-700">
+      <h3 class="font-bold mb-4">Por Tipo de Falha</h3>
+      <canvas baseChart [data]="barChartData" [options]="barChartOptions" [type]="'bar'"></canvas>
+    </div>
+    <div class="bg-globo-card p-4 rounded border border-gray-700">
+      <h3 class="font-bold mb-4">Por Severidade</h3>
+      <canvas baseChart [data]="pieChartData" [type]="'doughnut'"></canvas>
+    </div>
+  </div>
+</div>
