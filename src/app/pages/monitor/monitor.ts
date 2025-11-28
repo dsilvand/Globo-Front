@@ -71,30 +71,38 @@ export class MonitorComponent implements OnInit, OnDestroy {
     });
   }
 
-  // --- Ações de Configuração ---
+  // --- LÓGICA DE CONFIGURAÇÃO AJUSTADA ---
 
-  // 1. Apenas troca a aba visualmente (NÃO salva automaticamente)
+  // 1. Troca de Aba: Salva IMEDIATAMENTE (Silencioso)
+  // Atende ao seu pedido: "Frontend avisa o Backend imediatamente (setMode)"
   setMode(mode: string) {
     this.settings.mode = mode;
+    this.saveSettings(false); // false = sem alerta visual (feedback silencioso)
   }
 
-  // 2. Salva explicitamente ao clicar no botão discreto
-  saveSettings() {
+  // 2. Botão Disquete: Salva com Feedback Visual
+  // É a única forma de persistir alterações de texto (URL/Devices)
+  saveSettings(showFeedback: boolean = true) {
     this.api.setMonitoringMode(this.settings).subscribe({
       next: (res) => {
-        console.log('Configurações salvas no servidor.');
-        alert('Configurações salvas com sucesso!'); // Feedback simples
+        if(showFeedback) {
+           console.log('Configurações salvas no servidor.');
+           alert('Configurações salvas com sucesso!'); 
+        }
         
-        // Se estiver tocando e mudou a config, paramos para forçar reinício com novos parâmetros
+        // Se mudou a fonte enquanto toca, reiniciamos o stream
         if(this.isPlaying) {
           this.stopStreamLocal();
         }
       },
-      error: (err) => alert('Erro ao salvar: ' + (err.error?.detail || 'Erro desconhecido'))
+      error: (err) => {
+        if(showFeedback) alert('Erro ao salvar: ' + (err.error?.detail || 'Erro desconhecido'));
+      }
     });
   }
 
-  // 3. Inicia o stream usando o que está SALVO no backend
+  // 3. Iniciar Stream: NÃO FORÇA SALVAMENTO
+  // Atende ao seu pedido: "transferido do INICIAR MONITORAMENTO para o novo botao disket"
   startStream() {
     this.api.startLiveStream().subscribe({
       next: (res) => {
@@ -103,17 +111,16 @@ export class MonitorComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Erro ao iniciar stream', err);
-        alert('Erro ao iniciar. Verifique se salvou as configurações corretamente.');
+        // Mensagem de erro educativa
+        alert('Erro ao iniciar. Se você alterou a URL, certifique-se de ter clicado no botão SALVAR antes.');
       }
     });
   }
 
-  // --- Controle do Modal ---
+  // --- Restante do Código (Player e Modal) ---
 
   openDetails(id: number) { this.selectedOccurrenceId = id; }
   closeDetails() { this.selectedOccurrenceId = null; }
-
-  // --- Player HLS ---
 
   initPlayer() {
     if (this.hls) this.hls.destroy();
