@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/co
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api';
+import { ToastService } from '../../services/toast.service';
 import { OccurrenceDetailsComponent } from '../../components/occurrence-details/occurrence-details';
 import Hls from 'hls.js';
 
@@ -23,9 +24,10 @@ export class MonitorComponent implements OnInit, OnDestroy {
   selectedOccurrenceId: number | null = null;
   
   isPlaying = false;
+  isMuted = true;
   hls: Hls | null = null;
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService, private toast: ToastService) {}
 
   ngOnInit() {
     this.loadSettings();
@@ -71,56 +73,43 @@ export class MonitorComponent implements OnInit, OnDestroy {
     });
   }
 
-  // --- LÓGICA DE CONFIGURAÇÃO AJUSTADA ---
-
-  // 1. Troca de Aba: Salva IMEDIATAMENTE (Silencioso)
-  // Atende ao seu pedido: "Frontend avisa o Backend imediatamente (setMode)"
   setMode(mode: string) {
     this.settings.mode = mode;
-    this.saveSettings(false); // false = sem alerta visual (feedback silencioso)
+    this.saveSettings(false);
   }
 
-  // 2. Botão Disquete: Salva com Feedback Visual
-  // É a única forma de persistir alterações de texto (URL/Devices)
   saveSettings(showFeedback: boolean = true) {
     this.api.setMonitoringMode(this.settings).subscribe({
       next: (res) => {
-        if(showFeedback) {
-           console.log('Configurações salvas no servidor.');
-           alert('Configurações salvas com sucesso!'); 
-        }
-        
-        // Se mudou a fonte enquanto toca, reiniciamos o stream
-        if(this.isPlaying) {
-          this.stopStreamLocal();
-        }
+        // Correção aplicada aqui: "guardadas" -> "salvas"
+        if(showFeedback) this.toast.show('Configurações salvas com sucesso!', 'success');
+        if(this.isPlaying) this.stopStreamLocal();
       },
       error: (err) => {
-        if(showFeedback) alert('Erro ao salvar: ' + (err.error?.detail || 'Erro desconhecido'));
+        if(showFeedback) this.toast.show('Erro ao salvar: ' + (err.error?.detail || 'Erro'), 'error');
       }
     });
   }
 
-  // 3. Iniciar Stream: NÃO FORÇA SALVAMENTO
-  // Atende ao seu pedido: "transferido do INICIAR MONITORAMENTO para o novo botao disket"
   startStream() {
     this.api.startLiveStream().subscribe({
       next: (res) => {
-        console.log(res.message);
+        // Correção anterior mantida: "Iniciando transmissão..."
+        this.toast.show('Iniciando transmissão...', 'info');
         setTimeout(() => this.initPlayer(), 3000);
       },
       error: (err) => {
-        console.error('Erro ao iniciar stream', err);
-        // Mensagem de erro educativa
-        alert('Erro ao iniciar. Se você alterou a URL, certifique-se de ter clicado no botão SALVAR antes.');
+        this.toast.show('Erro ao iniciar stream. Verifique a URL.', 'error');
       }
     });
   }
 
-  // --- Restante do Código (Player e Modal) ---
-
-  openDetails(id: number) { this.selectedOccurrenceId = id; }
-  closeDetails() { this.selectedOccurrenceId = null; }
+  toggleMute() {
+    this.isMuted = !this.isMuted;
+    if(this.videoElement?.nativeElement) {
+      this.videoElement.nativeElement.muted = this.isMuted;
+    }
+  }
 
   initPlayer() {
     if (this.hls) this.hls.destroy();
@@ -132,6 +121,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
       this.hls.loadSource(hlsUrl);
       this.hls.attachMedia(video);
       this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        video.muted = this.isMuted;
         video.play().catch(e => console.warn("Autoplay block:", e));
         this.isPlaying = true;
       });
@@ -152,8 +142,16 @@ export class MonitorComponent implements OnInit, OnDestroy {
 
   stopStreamLocal() {
     if (this.hls) this.hls.destroy();
+    if(this.videoElement?.nativeElement) {
+      this.videoElement.nativeElement.pause();
+      this.videoElement.nativeElement.removeAttribute('src');
+      this.videoElement.nativeElement.load();
+    }
     this.isPlaying = false;
   }
 
+  openDetails(id: number) { this.selectedOccurrenceId = id; }
+  closeDetails() { this.selectedOccurrenceId = null; }
+  
   ngOnDestroy() { this.stopStreamLocal(); }
 }

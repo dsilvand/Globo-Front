@@ -66,6 +66,10 @@ export class ApiService {
     return this.http.put(`${this.baseUrl}/occurrences/${id}/status`, { status });
   }
 
+  getOccurrenceById(id: number): Observable<any> {
+    return this.http.get(`${this.baseUrl}/occurrences/${id}`);
+  }
+
   // --- Exportação ---
   getExportUrl(type: 'csv' | 'pdf', filters: any): string {
     let params = new URLSearchParams();
@@ -76,11 +80,16 @@ export class ApiService {
   }
 
   // --- Dashboard (dashboard.py) ---
-  getDashboardSummary(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/dashboard/summary`);
-  }
+  // ATUALIZADO: Agora aceita start e end opcionais para o filtro 'Período'
+  getDashboardSummary(range: string = 'today', start?: string, end?: string): Observable<any> {
+    let params = new HttpParams().set('range', range);
+    
+    // Se o range for 'custom' e as datas existirem, adiciona aos parâmetros da requisição
+    if (range === 'custom' && start && end) {
+      params = params.set('start_date', start);
+      params = params.set('end_date', end);
+    }
 
-  getOccurrenceById(id: number): Observable<any> {
-    return this.http.get(`${this.baseUrl}/occurrences/${id}`);
+    return this.http.get(`${this.baseUrl}/dashboard/summary`, { params });
   }
 }

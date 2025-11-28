@@ -9,48 +9,64 @@
     </div>
     
     <div class="flex gap-3">
-      <button (click)="download('csv')" class="border border-white/20 hover:bg-white/5 text-gray-300 hover:text-white px-4 py-2 rounded text-xs font-bold uppercase tracking-wider transition flex items-center gap-2">
-        <i class="fas fa-table text-green-500/80"></i> CSV
+      <button (click)="download('csv')" class="btn-secondary">
+        <i class="fas fa-table text-green-500/80 mr-2"></i> CSV
       </button>
-      <button (click)="download('pdf')" class="border border-white/20 hover:bg-white/5 text-gray-300 hover:text-white px-4 py-2 rounded text-xs font-bold uppercase tracking-wider transition flex items-center gap-2">
-        <i class="fas fa-file-pdf text-red-500/80"></i> PDF
+      <button (click)="download('pdf')" class="btn-secondary">
+        <i class="fas fa-file-pdf text-red-500/80 mr-2"></i> PDF
       </button>
     </div>
   </div>
 
-  <div class="bg-[#181818] p-5 rounded-xl border border-white/5 mb-6 flex flex-wrap gap-6 items-end">
-    <div class="flex-1 min-w-[200px]">
-      <label class="text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-2 block ml-1">Período Inicial</label>
-      <input type="date" [(ngModel)]="filters.start_date" class="w-full bg-[#0F0F0F] border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-[#F47F20] transition-colors text-sm">
+  <div class="bg-[#181818] p-5 rounded-xl border border-white/5 mb-6 flex flex-wrap gap-4 items-end shadow-lg">
+    
+    <div class="flex-1 min-w-[180px]">
+      <label class="label-tiny">Período Inicial</label>
+      <div class="relative group">
+        <input type="date" 
+               #pickerStart
+               (click)="pickerStart.showPicker()"
+               [(ngModel)]="filters.start_date" 
+               class="input-dark cursor-pointer font-mono text-gray-300 focus:text-white">
+      </div>
     </div>
-    <div class="flex-1 min-w-[200px]">
-      <label class="text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-2 block ml-1">Período Final</label>
-      <input type="date" [(ngModel)]="filters.end_date" class="w-full bg-[#0F0F0F] border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-[#F47F20] transition-colors text-sm">
+
+    <div class="flex-1 min-w-[180px]">
+      <label class="label-tiny">Período Final</label>
+      <div class="relative group">
+        <input type="date" 
+               #pickerEnd
+               (click)="pickerEnd.showPicker()"
+               [(ngModel)]="filters.end_date" 
+               class="input-dark cursor-pointer font-mono text-gray-300 focus:text-white">
+      </div>
     </div>
-    <div class="flex-1 min-w-[200px]">
-      <label class="text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-2 block ml-1">Status</label>
+
+    <div class="flex-1 min-w-[180px]">
+      <label class="label-tiny">Status</label>
       <div class="relative">
-        <select [(ngModel)]="filters.status" class="w-full bg-[#0F0F0F] border border-white/10 rounded-lg pl-4 pr-10 py-2 text-white outline-none focus:border-[#F47F20] appearance-none cursor-pointer text-sm">
-          <option value="" class="bg-[#1E1E1E]">Todos os Status</option>
-          <option value="Aprovado" class="bg-[#1E1E1E]">Aprovado</option>
-          <option value="Rejeitado" class="bg-[#1E1E1E]">Rejeitado</option>
-          <option value="Não Validado" class="bg-[#1E1E1E]">Não Validado</option>
+        <select [(ngModel)]="filters.status" class="input-select py-2 pl-4 pr-10">
+          <option value="">Todos os Status</option>
+          <option value="Aprovado">Aprovado</option>
+          <option value="Rejeitado">Rejeitado</option>
+          <option value="Não Validado">Não Validado</option>
         </select>
         <i class="fas fa-chevron-down absolute right-4 top-3 text-gray-500 text-xs pointer-events-none"></i>
       </div>
     </div>
     
-    <button (click)="loadData()" class="bg-transparent border border-[#F47F20] text-[#F47F20] hover:bg-[#F47F20] hover:text-white px-8 py-2 rounded-lg font-bold text-sm h-[38px] transition-all duration-300 shadow-[0_0_10px_rgba(244,127,32,0.1)] hover:shadow-[0_0_15px_rgba(244,127,32,0.4)]">
-      FILTRAR RESULTADOS
+    <button (click)="loadData()" class="px-8 py-2 rounded-lg bg-[#F47F20] hover:bg-[#D86810] text-white font-bold text-sm h-[38px] transition-all duration-300 shadow-[0_0_10px_rgba(244,127,32,0.1)] hover:shadow-[0_0_15px_rgba(244,127,32,0.4)]">
+      FILTRAR
     </button>
   </div>
 
-  <div class="bg-[#181818] rounded-xl border border-white/5 overflow-hidden flex-1 flex flex-col">
-    <div class="overflow-x-auto flex-1">
+  <div class="bg-[#181818] rounded-xl border border-white/5 overflow-hidden flex-1 flex flex-col shadow-2xl">
+    <div class="overflow-x-auto flex-1 custom-scrollbar">
       <table class="w-full text-left border-collapse">
-        <thead>
-          <tr class="bg-black/20 border-b border-white/5 text-gray-500 text-[10px] uppercase tracking-widest font-bold">
-            <th class="p-4 pl-6">Data / Hora</th>
+        <thead class="sticky top-0 bg-[#121212] z-10 shadow-sm">
+          <tr class="text-gray-500 text-[10px] uppercase tracking-widest font-bold">
+            <th class="p-4 pl-6">Data</th>
+            <th class="p-4">Hora</th>
             <th class="p-4">Programa</th>
             <th class="p-4">Falha</th>
             <th class="p-4">Severidade</th>
@@ -61,9 +77,8 @@
         <tbody class="divide-y divide-white/5">
           <tr *ngFor="let item of historyData" class="hover:bg-white/[0.02] transition-colors group">
             
-            <td class="p-4 pl-6 text-sm font-mono text-gray-400">
-              {{ item.data_hora | date:'dd/MM' }} <span class="opacity-30 mx-1">|</span> {{ item.data_hora | date:'HH:mm' }}
-            </td>
+            <td class="p-4 pl-6 text-sm font-mono text-gray-400">{{ item.data_hora | date:'dd/MM/yy' }}</td>
+            <td class="p-4 text-sm font-mono font-bold text-gray-300">{{ item.data_hora | date:'HH:mm:ss' }}</td>
             
             <td class="p-4 text-sm text-gray-200 font-medium">
               {{ item.programa || 'Stream Geral' }}
@@ -74,7 +89,7 @@
             </td>
             
             <td class="p-4">
-              <span class="text-[10px] font-bold px-2 py-0.5 rounded border" [ngClass]="{
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded border inline-block min-w-[80px] text-center" [ngClass]="{
                 'border-red-500/30 text-red-400 bg-red-500/5': item.nivel === 'Crítico',
                 'border-yellow-500/30 text-yellow-400 bg-yellow-500/5': item.nivel === 'Alerta',
                 'border-green-500/30 text-green-400 bg-green-500/5': item.nivel === 'Info'
@@ -82,37 +97,42 @@
             </td>
             
             <td class="p-4">
-              <span class="text-xs flex items-center gap-1.5"
+              <span class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-opacity-10 border"
                 [ngClass]="{
-                  'text-green-500': item.status === 'Aprovado',
-                  'text-red-500': item.status === 'Rejeitado',
-                  'text-yellow-500': item.status === 'Não Validado'
+                  'bg-green-500 text-green-400 border-green-500/20': item.status === 'Aprovado',
+                  'bg-red-500 text-red-400 border-red-500/20': item.status === 'Rejeitado',
+                  'bg-yellow-500 text-yellow-400 border-yellow-500/20': item.status === 'Não Validado'
                 }">
-                <span class="w-1.5 h-1.5 rounded-full" [ngClass]="{
-                  'bg-green-500': item.status === 'Aprovado',
-                  'bg-red-500': item.status === 'Rejeitado',
-                  'bg-yellow-500': item.status === 'Não Validado'
-                }"></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
                 {{ item.status }}
               </span>
             </td>
             
             <td class="p-4">
-              <div class="flex justify-center gap-3">
-                <button (click)="openDetails(item.id)" class="text-gray-400 hover:text-white transition-colors transform hover:scale-110" title="Ver Detalhes">
-                  <i class="fas fa-eye text-lg"></i>
+              <div class="flex justify-center gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                <button (click)="openDetails(item.id)" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition" title="Ver Detalhes">
+                  <i class="fas fa-eye"></i>
                 </button>
-                <button (click)="approve(item.id)" class="text-gray-500 hover:text-green-400 transition-colors transform hover:scale-110" title="Aprovar">
-                  <i class="fas fa-check-circle text-lg"></i>
+                <button (click)="approve(item.id)" class="w-8 h-8 rounded-full hover:bg-green-500/20 flex items-center justify-center text-gray-500 hover:text-green-400 transition" title="Aprovar">
+                  <i class="fas fa-check"></i>
                 </button>
-                <button (click)="reject(item.id)" class="text-gray-500 hover:text-red-400 transition-colors transform hover:scale-110" title="Rejeitar">
-                  <i class="fas fa-times-circle text-lg"></i>
+                <button (click)="reject(item.id)" class="w-8 h-8 rounded-full hover:bg-red-500/20 flex items-center justify-center text-gray-500 hover:text-red-400 transition" title="Rejeitar">
+                  <i class="fas fa-times"></i>
                 </button>
               </div>
             </td>
           </tr>
         </tbody>
       </table>
+    </div>
+    
+    <div class="p-4 border-t border-white/5 bg-[#121212] flex justify-between items-center text-xs text-gray-500">
+      <span>Total: {{ total }} registos</span>
+      <div class="flex gap-2">
+        <button (click)="changePage(-1)" [disabled]="page === 1" class="px-3 py-1 rounded border border-white/10 hover:bg-white/5 disabled:opacity-30 transition">Anterior</button>
+        <span class="px-2 py-1">Pág {{ page }}</span>
+        <button (click)="changePage(1)" class="px-3 py-1 rounded border border-white/10 hover:bg-white/5 transition">Próximo</button>
+      </div>
     </div>
   </div>
 </div>

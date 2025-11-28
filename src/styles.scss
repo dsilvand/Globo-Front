@@ -9,7 +9,24 @@ html, body {
     background-color: #121212;
     color: #E0E0E0;
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    overflow: hidden; /* Remove rolagem da página inteira */
+    overflow: hidden;
+}
+
+/* --- Classes Utilitárias (Novas) --- */
+.input-dark {
+    @apply w-full bg-[#0F0F0F] border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-[#F47F20] transition-colors text-sm;
+}
+.input-select {
+    @apply w-full bg-[#0F0F0F] border border-white/5 rounded-lg px-4 py-3 text-xs text-gray-300 focus:border-[#F47F20]/50 outline-none appearance-none cursor-pointer;
+}
+.label-tiny {
+    @apply text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-2 block ml-1;
+}
+.btn-secondary {
+    @apply border border-white/20 hover:bg-white/5 text-gray-300 hover:text-white px-4 py-2 rounded text-xs font-bold uppercase tracking-wider transition flex items-center;
+}
+.btn-icon-save {
+    @apply h-[46px] w-[46px] flex items-center justify-center rounded-lg border border-white/5 bg-[#0F0F0F] text-gray-500 hover:text-[#F47F20] hover:border-[#F47F20]/30 hover:bg-[#F47F20]/10 transition-all;
 }
 
 .glass-panel {
@@ -19,10 +36,10 @@ html, body {
     border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Botão Premium (Corrigido: Mais nítido, menos blur) */
+/* Botão Premium */
 .btn-premium {
     background: linear-gradient(135deg, #F47F20 0%, #D81B60 100%);
-    box-shadow: 0 4px 15px rgba(244, 127, 32, 0.3); /* Sombra controlada */
+    box-shadow: 0 4px 15px rgba(244, 127, 32, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.1);
     transition: all 0.3s ease;
     position: relative;
@@ -31,53 +48,19 @@ html, body {
 .btn-premium:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(244, 127, 32, 0.5);
-    filter: brightness(1.1); /* Brilho interno em vez de blur externo */
+    filter: brightness(1.1);
 }
-.btn-premium:active {
-    transform: translateY(0);
-}
+.btn-premium:active { transform: translateY(0); }
 
-/* Custom Scrollbar para as áreas de lista */
-.custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-    background: #1E1E1E; 
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #444; 
-    border-radius: 3px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #F47F20; 
-}
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #1E1E1E; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #F47F20; }
 
-/* Animação Fade In */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-.animate-fade-in {
-    animation: fadeIn 0.3s ease-in-out;
-}
-
-/* Skeleton Loading (Corrigido: Pulso suave) */
-@keyframes pulse-soft {
-    0%, 100% { opacity: 0.05; }
-    50% { opacity: 0.15; }
-}
-.skeleton {
-    background-color: #ffffff;
-    animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    border-radius: 4px;
-}
-
-/* Animações Gerais */
-.animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+/* Animações */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
 
 /* Indicador Ao Vivo */
 @keyframes live-pulse {
@@ -86,3 +69,33 @@ html, body {
   100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
 }
 .animate-live { animation: live-pulse 2s infinite; }
+
+/* Opcional: Pulso mais suave para esqueletos */
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.1; }
+  50% { opacity: 0.2; }
+}
+.skeleton-pulse {
+  animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+:root {
+    color-scheme: dark; /* Força o popup nativo do calendário a ser escuro */
+}
+
+input[type="date"] {
+    position: relative;
+}
+
+/* Deixa o ícone do calendário branco (invertendo o preto padrão) */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.6;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+    filter: invert(1) drop-shadow(0 0 2px rgba(244, 127, 32, 0.5)); /* Glow laranja no hover */
+}

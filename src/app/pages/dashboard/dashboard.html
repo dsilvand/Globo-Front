@@ -1,37 +1,106 @@
-<div class="p-6 text-white animate-fade-in">
-  <h1 class="text-2xl font-bold mb-6">Estatísticas</h1>
+<div class="p-8 text-white animate-fade-in h-full overflow-y-auto custom-scrollbar">
+  
+  <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold mb-1">Estatísticas</h1>
+      <p class="text-gray-500 text-sm">Visão consolidada da operação.</p>
+    </div>
+    
+    <div class="flex flex-col md:flex-row items-end md:items-center gap-3">
+      
+      <div *ngIf="activeFilter === 'custom'" class="flex items-center gap-2 animate-fade-in bg-[#181818] p-1 rounded-lg border border-white/5">
+        <div class="relative group">
+           <input type="date" #startPicker (click)="startPicker.showPicker()" [(ngModel)]="customStart" 
+                  class="bg-transparent border-none text-white text-xs font-mono focus:ring-0 outline-none w-[110px] cursor-pointer" placeholder="Início">
+        </div>
+        <span class="text-gray-600 text-xs">-</span>
+        <div class="relative group">
+           <input type="date" #endPicker (click)="endPicker.showPicker()" [(ngModel)]="customEnd" 
+                  class="bg-transparent border-none text-white text-xs font-mono focus:ring-0 outline-none w-[110px] cursor-pointer" placeholder="Fim">
+        </div>
+        <button (click)="applyCustomFilter()" class="bg-[#F47F20] hover:bg-[#D86810] text-white px-3 py-1 rounded text-xs font-bold transition">
+          OK
+        </button>
+      </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-    <div class="bg-globo-card p-4 rounded border border-gray-700">
-      <h3 class="text-gray-400 text-sm">Total Validado</h3>
-      <p class="text-3xl font-bold text-globo-success">{{ summary?.total_validated_occurrences || 0 }}</p>
-    </div>
-    <div class="bg-globo-card p-4 rounded border border-gray-700">
-      <h3 class="text-gray-400 text-sm">Concluído Hoje</h3>
-      <p class="text-3xl font-bold text-globo-primary">{{ summary?.completed_today || 0 }}</p>
-    </div>
-    <div class="bg-globo-card p-4 rounded border border-gray-700">
-      <h3 class="text-gray-400 text-sm">Mês Atual</h3>
-      <p class="text-3xl font-bold">{{ summary?.monthly_comparison?.current_month || 0 }}</p>
-    </div>
-    <div class="bg-globo-card p-4 rounded border border-gray-700">
-      <h3 class="text-gray-400 text-sm">Rejeitados</h3>
-      <p class="text-3xl font-bold text-globo-danger">{{ summary?.status_distribution?.rejected || 0 }}</p>
+      <div class="flex bg-[#181818] rounded-lg p-1 border border-white/5">
+        <button (click)="setFilter('today')" 
+                class="px-4 py-1 text-xs font-bold rounded transition-all duration-200"
+                [ngClass]="activeFilter === 'today' ? 'bg-[#333] text-white shadow shadow-black/50' : 'text-gray-500 hover:text-white'">
+          Hoje
+        </button>
+        <button (click)="setFilter('7days')" 
+                class="px-4 py-1 text-xs font-bold rounded transition-all duration-200"
+                [ngClass]="activeFilter === '7days' ? 'bg-[#333] text-white shadow shadow-black/50' : 'text-gray-500 hover:text-white'">
+          7 Dias
+        </button>
+        <button (click)="setFilter('30days')" 
+                class="px-4 py-1 text-xs font-bold rounded transition-all duration-200"
+                [ngClass]="activeFilter === '30days' ? 'bg-[#333] text-white shadow shadow-black/50' : 'text-gray-500 hover:text-white'">
+          30 Dias
+        </button>
+        <button (click)="setFilter('custom')" 
+                class="px-4 py-1 text-xs font-bold rounded transition-all duration-200"
+                [ngClass]="activeFilter === 'custom' ? 'bg-[#333] text-[#F47F20] shadow shadow-black/50' : 'text-gray-500 hover:text-white'">
+          Período
+        </button>
+      </div>
+
     </div>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <div class="bg-globo-card p-4 rounded border border-gray-700">
-      <h3 class="font-bold mb-4">Por Tipo de Falha</h3>
-      <div class="relative h-[300px] w-full">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    
+    <div class="bg-[#181818] p-6 rounded-xl border border-white/5 relative overflow-hidden group hover:border-green-500/30 transition-all">
+      <div class="absolute right-[-10px] top-[-10px] text-white/5 text-7xl group-hover:text-green-500/10 transition-colors">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <h3 class="text-gray-400 text-[11px] uppercase font-bold tracking-widest mb-1">Total Validado</h3>
+      <p class="text-4xl font-bold text-green-500 font-mono">{{ summary?.total_validated_occurrences || 0 }}</p>
+    </div>
+
+    <div class="bg-[#181818] p-6 rounded-xl border border-white/5 relative overflow-hidden group hover:border-red-500/30 transition-all">
+      <div class="absolute right-[-10px] top-[-10px] text-white/5 text-7xl group-hover:text-red-500/10 transition-colors">
+        <i class="fas fa-times-circle"></i>
+      </div>
+      <h3 class="text-gray-400 text-[11px] uppercase font-bold tracking-widest mb-1">Total Rejeitado</h3>
+      <p class="text-4xl font-bold text-red-500 font-mono">{{ summary?.status_distribution?.rejected || 0 }}</p>
+    </div>
+
+    <div class="bg-[#181818] p-6 rounded-xl border border-white/5 relative overflow-hidden group hover:border-blue-500/30 transition-all">
+      <div class="absolute right-[-10px] top-[-10px] text-white/5 text-7xl group-hover:text-blue-500/10 transition-colors">
+        <i class="fas fa-layer-group"></i>
+      </div>
+      <h3 class="text-gray-400 text-[11px] uppercase font-bold tracking-widest mb-1">Total de Ocorrências</h3>
+      <p class="text-4xl font-bold text-blue-500 font-mono">{{ totalOccurrences }}</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6">
+    
+    <div class="bg-[#181818] p-6 rounded-xl border border-white/5 shadow-lg flex flex-col h-full">
+      <div class="flex justify-between items-center mb-6">
+         <h3 class="font-bold text-sm text-gray-200 flex items-center gap-2">
+           <span class="w-1 h-4 bg-[#F47F20] rounded-full"></span>
+           Distribuição por Tipo de Falha
+         </h3>
+      </div>
+      <div class="relative h-[500px] w-full flex-1">
         <canvas baseChart [data]="barChartData" [options]="barChartOptions" [type]="'bar'"></canvas>
       </div>
     </div>
-    <div class="bg-globo-card p-4 rounded border border-gray-700">
-      <h3 class="font-bold mb-4">Por Severidade</h3>
-      <div class="relative h-[300px] w-full flex justify-center">
-        <canvas baseChart [data]="pieChartData" [type]="'doughnut'"></canvas>
+
+    <div class="bg-[#181818] p-6 rounded-xl border border-white/5 shadow-lg flex flex-col h-full">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="font-bold text-sm text-gray-200 flex items-center gap-2">
+          <span class="w-1 h-4 bg-red-500 rounded-full"></span>
+          Distribuição por Nível de Falha
+        </h3>
+     </div>
+      <div class="relative h-[500px] w-full flex justify-center items-center">
+        <canvas baseChart [data]="severityChartData" [options]="severityChartOptions" [type]="'bar'"></canvas>
       </div>
     </div>
+
   </div>
 </div>

@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../services/api';
+import { ToastService } from '../../services/toast.service'; // <--- Importar
 
 @Component({
   selector: 'app-occurrence-details',
@@ -12,13 +13,16 @@ import { ApiService } from '../../services/api';
 export class OccurrenceDetailsComponent implements OnChanges {
   @Input() occurrenceId: number | null = null;
   @Output() close = new EventEmitter<void>();
-  @Output() statusChanged = new EventEmitter<void>(); // <--- Novo evento
+  @Output() statusChanged = new EventEmitter<void>();
 
   occurrence: any = null;
   loading = false;
-  processing = false; // Para desabilitar botões durante o clique
+  processing = false; // Controla o estado dos botões de ação
 
-  constructor(private api: ApiService) {}
+  constructor(
+    private api: ApiService,
+    private toast: ToastService // <--- Injetar
+  ) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['occurrenceId'] && this.occurrenceId) {
@@ -37,34 +41,44 @@ export class OccurrenceDetailsComponent implements OnChanges {
       },
       error: (err) => {
         console.error(err);
+        this.toast.show('Erro ao carregar detalhes.', 'error');
         this.loading = false;
+        this.onClose();
       }
     });
   }
 
-  // Ação de Validar (Aprovar)
   validate() {
     if (!this.occurrence) return;
     this.processing = true;
+    
     this.api.updateStatus(this.occurrence.id, 'Aprovado').subscribe({
       next: () => {
-        this.statusChanged.emit(); // Avisa o pai para atualizar a lista
-        this.onClose(); // Fecha o modal
-      },
-      error: () => this.processing = false
-    });
-  }
-
-  // Ação de Rejeitar
-  reject() {
-    if (!this.occurrence) return;
-    this.processing = true;
-    this.api.updateStatus(this.occurrence.id, 'Rejeitado').subscribe({
-      next: () => {
+        this.toast.show(`Ocorrência #${this.occurrence.id} aprovada!`, 'success');
         this.statusChanged.emit();
         this.onClose();
       },
-      error: () => this.processing = false
+      error: () => {
+        this.toast.show('Erro ao aprovar ocorrência.', 'error');
+        this.processing = false;
+      }
+    });
+  }
+
+  reject() {
+    if (!this.occurrence) return;
+    this.processing = true;
+
+    this.api.updateStatus(this.occurrence.id, 'Rejeitado').subscribe({
+      next: () => {
+        this.toast.show(`Ocorrência #${this.occurrence.id} rejeitada.`, 'info');
+        this.statusChanged.emit();
+        this.onClose();
+      },
+      error: () => {
+        this.toast.show('Erro ao rejeitar ocorrência.', 'error');
+        this.processing = false;
+      }
     });
   }
 
