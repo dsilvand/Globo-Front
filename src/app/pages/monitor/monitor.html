@@ -32,7 +32,7 @@
       
       <div class="flex justify-center p-1 bg-black/20 rounded-lg self-center">
         <button *ngFor="let m of ['FILE', 'SRT', 'DEVICE']"
-          (click)="settings.mode = m"
+          (click)="setMode(m)"
           class="px-6 py-1.5 rounded-md text-xs font-bold tracking-wide transition-all duration-200"
           [ngClass]="settings.mode === m ? 'bg-[#333] text-white shadow-sm border border-white/10' : 'text-gray-500 hover:text-gray-300'">
           {{ m }}
@@ -41,31 +41,50 @@
 
       <div class="px-4 pb-2 animate-fade-in">
         
-        <div *ngIf="settings.mode === 'SRT'" class="relative flex items-center">
-          <i class="fas fa-link absolute left-4 text-gray-600 text-xs"></i>
-          <input [(ngModel)]="settings.srt_url" placeholder="Insira a URL do stream (srt://...)" 
-                 class="w-full bg-[#0F0F0F] border border-white/5 rounded-lg pl-10 pr-4 py-3 text-sm text-gray-300 focus:border-[#F47F20]/50 focus:bg-black outline-none transition-all font-mono placeholder-gray-700">
+        <div *ngIf="settings.mode === 'SRT'" class="flex gap-2 items-center">
+          <div class="relative flex-1 flex items-center">
+            <i class="fas fa-link absolute left-4 text-gray-600 text-xs"></i>
+            <input [(ngModel)]="settings.srt_url" placeholder="Insira a URL do stream (srt://...)" 
+                   class="w-full bg-[#0F0F0F] border border-white/5 rounded-lg pl-10 pr-4 py-3 text-sm text-gray-300 focus:border-[#F47F20]/50 focus:bg-black outline-none transition-all font-mono placeholder-gray-700">
+          </div>
+          
+          <button (click)="saveSettings()" 
+                  class="h-[46px] w-[46px] flex items-center justify-center rounded-lg border border-white/5 bg-[#0F0F0F] text-gray-500 hover:text-[#F47F20] hover:border-[#F47F20]/30 hover:bg-[#F47F20]/10 transition-all"
+                  title="Salvar Configuração">
+            <i class="fas fa-save text-lg"></i>
+          </button>
         </div>
 
-        <div *ngIf="settings.mode === 'DEVICE'" class="flex gap-3">
-          <div class="relative flex-1">
-            <select [(ngModel)]="settings.video_device" class="w-full bg-[#0F0F0F] border border-white/5 rounded-lg px-4 py-3 text-xs text-gray-300 focus:border-[#F47F20]/50 outline-none appearance-none cursor-pointer">
-              <option value="" disabled>Selecione Vídeo</option>
-              <option *ngFor="let d of videoDevices" [value]="d">{{ d }}</option>
-            </select>
-            <i class="fas fa-video absolute right-3 top-3.5 text-gray-600 text-xs pointer-events-none"></i>
+        <div *ngIf="settings.mode === 'DEVICE'" class="flex gap-2 items-center">
+          <div class="flex gap-2 flex-1">
+            <div class="relative flex-1">
+              <select [(ngModel)]="settings.video_device" class="w-full bg-[#0F0F0F] border border-white/5 rounded-lg px-4 py-3 text-xs text-gray-300 focus:border-[#F47F20]/50 outline-none appearance-none cursor-pointer">
+                <option value="" disabled>Selecione Vídeo</option>
+                <option *ngFor="let d of videoDevices" [value]="d">{{ d }}</option>
+              </select>
+              <i class="fas fa-video absolute right-3 top-3.5 text-gray-600 text-xs pointer-events-none"></i>
+            </div>
+            <div class="relative flex-1">
+              <select [(ngModel)]="settings.audio_device" class="w-full bg-[#0F0F0F] border border-white/5 rounded-lg px-4 py-3 text-xs text-gray-300 focus:border-[#F47F20]/50 outline-none appearance-none cursor-pointer">
+                <option value="" disabled>Selecione Áudio</option>
+                <option *ngFor="let d of audioDevices" [value]="d">{{ d }}</option>
+              </select>
+              <i class="fas fa-microphone absolute right-3 top-3.5 text-gray-600 text-xs pointer-events-none"></i>
+            </div>
           </div>
-          <div class="relative flex-1">
-            <select [(ngModel)]="settings.audio_device" class="w-full bg-[#0F0F0F] border border-white/5 rounded-lg px-4 py-3 text-xs text-gray-300 focus:border-[#F47F20]/50 outline-none appearance-none cursor-pointer">
-              <option value="" disabled>Selecione Áudio</option>
-              <option *ngFor="let d of audioDevices" [value]="d">{{ d }}</option>
-            </select>
-            <i class="fas fa-microphone absolute right-3 top-3.5 text-gray-600 text-xs pointer-events-none"></i>
-          </div>
+
+          <button (click)="saveSettings()" 
+                  class="h-[46px] w-[46px] flex items-center justify-center rounded-lg border border-white/5 bg-[#0F0F0F] text-gray-500 hover:text-[#F47F20] hover:border-[#F47F20]/30 hover:bg-[#F47F20]/10 transition-all"
+                  title="Salvar Configuração">
+            <i class="fas fa-save text-lg"></i>
+          </button>
         </div>
 
-        <div *ngIf="settings.mode === 'FILE'" class="text-center py-2">
-          <span class="text-xs text-gray-600">O sistema utilizará o arquivo de teste padrão configurado no servidor.</span>
+        <div *ngIf="settings.mode === 'FILE'" class="text-center py-2 flex justify-center items-center gap-3">
+          <span class="text-xs text-gray-600">O sistema utilizará o arquivo de teste padrão.</span>
+           <button (click)="saveSettings()" class="text-xs font-bold text-[#F47F20] hover:text-white transition uppercase tracking-wider px-3 py-1.5 rounded hover:bg-white/5">
+             Confirmar
+           </button>
         </div>
 
       </div>

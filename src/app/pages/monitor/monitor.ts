@@ -10,18 +10,17 @@ import Hls from 'hls.js';
   standalone: true,
   imports: [CommonModule, FormsModule, OccurrenceDetailsComponent],
   templateUrl: './monitor.html',
-  styleUrls: ['./monitor.scss'] // Certifique-se que o arquivo existe, mesmo vazio
+  styleUrls: ['./monitor.scss']
 })
 export class MonitorComponent implements OnInit, OnDestroy {
   @ViewChild('videoPlayer') videoElement!: ElementRef<HTMLVideoElement>;
   
-  // Configurações e Estado
   settings: any = { mode: 'FILE', srt_url: '', video_device: '', audio_device: '' };
   videoDevices: string[] = [];
   audioDevices: string[] = [];
   
   recentOccurrences: any[] = [];
-  selectedOccurrenceId: number | null = null; // Controle do Modal
+  selectedOccurrenceId: number | null = null;
   
   isPlaying = false;
   hls: Hls | null = null;
@@ -31,26 +30,19 @@ export class MonitorComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadSettings();
     this.loadDevices();
-    this.loadRecent(); // Carrega lista inicial
+    this.loadRecent();
 
-    // WebSocket: Ouve novas ocorrências em tempo real
     this.api.onNewOccurrence().subscribe(data => {
-      // Adiciona a nova ocorrência no topo
       this.recentOccurrences.unshift(data);
-      // Mantém apenas as 10 mais recentes na tela (conforme seu pedido)
       this.recentOccurrences = this.recentOccurrences.slice(0, 10);
     });
 
-    // Verifica se o stream já está rodando no backend ao abrir a página
     this.api.getLiveStatus().subscribe(res => {
       if(res.running) {
-        // Pequeno delay para garantir que o elemento de vídeo renderizou
         setTimeout(() => this.initPlayer(), 1000);
       }
     });
   }
-
-  // --- Carregamento de Dados ---
 
   loadSettings() {
     this.api.getMonitoringMode().subscribe({
@@ -75,19 +67,25 @@ export class MonitorComponent implements OnInit, OnDestroy {
 
   loadRecent() {
     this.api.getRecentOccurrences().subscribe(res => {
-      const allData = res || [];
-      // Garante que só mostramos os 10 últimos
-      this.recentOccurrences = allData.slice(0, 10);
+      this.recentOccurrences = (res || []).slice(0, 10);
     });
   }
 
-  // --- Ações do Usuário ---
+  // --- Ações de Configuração ---
 
+  // 1. Apenas troca a aba visualmente (NÃO salva automaticamente)
+  setMode(mode: string) {
+    this.settings.mode = mode;
+  }
+
+  // 2. Salva explicitamente ao clicar no botão discreto
   saveSettings() {
     this.api.setMonitoringMode(this.settings).subscribe({
       next: (res) => {
-        alert('Configurações salvas com sucesso!');
-        // Se mudou o modo, paramos o player atual para forçar reinício
+        console.log('Configurações salvas no servidor.');
+        alert('Configurações salvas com sucesso!'); // Feedback simples
+        
+        // Se estiver tocando e mudou a config, paramos para forçar reinício com novos parâmetros
         if(this.isPlaying) {
           this.stopStreamLocal();
         }
@@ -96,72 +94,47 @@ export class MonitorComponent implements OnInit, OnDestroy {
     });
   }
 
+  // 3. Inicia o stream usando o que está SALVO no backend
   startStream() {
     this.api.startLiveStream().subscribe({
       next: (res) => {
         console.log(res.message);
-        // Aguarda 3s para o FFmpeg gerar os primeiros segmentos antes de tocar
         setTimeout(() => this.initPlayer(), 3000);
       },
       error: (err) => {
         console.error('Erro ao iniciar stream', err);
-        alert('Não foi possível iniciar o stream. Verifique o backend.');
+        alert('Erro ao iniciar. Verifique se salvou as configurações corretamente.');
       }
     });
   }
 
   // --- Controle do Modal ---
 
-  openDetails(id: number) {
-    this.selectedOccurrenceId = id;
-  }
+  openDetails(id: number) { this.selectedOccurrenceId = id; }
+  closeDetails() { this.selectedOccurrenceId = null; }
 
-  closeDetails() {
-    this.selectedOccurrenceId = null;
-  }
-
-  // --- Lógica do Player (HLS) ---
+  // --- Player HLS ---
 
   initPlayer() {
     if (this.hls) this.hls.destroy();
-    
     const video = this.videoElement.nativeElement;
     const hlsUrl = 'http://localhost:8000/hls/index.m3u8'; 
 
     if (Hls.isSupported()) {
-      this.hls = new Hls({
-        enableWorker: true,
-        lowLatencyMode: true,
-      });
-      
+      this.hls = new Hls({ enableWorker: true, lowLatencyMode: true });
       this.hls.loadSource(hlsUrl);
       this.hls.attachMedia(video);
-      
       this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        video.play().catch(e => console.warn("Autoplay bloqueado:", e));
+        video.play().catch(e => console.warn("Autoplay block:", e));
         this.isPlaying = true;
       });
-
       this.hls.on(Hls.Events.ERROR, (event, data) => {
         if (data.fatal) {
-          switch (data.type) {
-            case Hls.ErrorTypes.NETWORK_ERROR:
-              console.log("Erro de rede no stream, tentando recuperar...");
-              this.hls?.startLoad();
-              break;
-            case Hls.ErrorTypes.MEDIA_ERROR:
-              console.log("Erro de mídia, recuperando...");
-              this.hls?.recoverMediaError();
-              break;
-            default:
-              this.stopStreamLocal();
-              break;
-          }
+           data.type === Hls.ErrorTypes.NETWORK_ERROR ? this.hls?.startLoad() : this.stopStreamLocal();
         }
       });
     } 
     else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      // Fallback para Safari
       video.src = hlsUrl;
       video.addEventListener('loadedmetadata', () => {
         video.play();
@@ -175,7 +148,5 @@ export class MonitorComponent implements OnInit, OnDestroy {
     this.isPlaying = false;
   }
 
-  ngOnDestroy() {
-    this.stopStreamLocal();
-  }
+  ngOnDestroy() { this.stopStreamLocal(); }
 }
