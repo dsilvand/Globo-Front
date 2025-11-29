@@ -12,28 +12,34 @@ html, body {
     overflow: hidden;
 }
 
-/* --- Classes Utilitárias (Novas) --- */
+/* --- Classes Utilitárias (Melhoradas) --- */
+
+/* Aumentei o contraste da borda e adicionei um focus ring subtil */
 .input-dark {
-    @apply w-full bg-[#0F0F0F] border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-[#F47F20] transition-colors text-sm;
+    @apply w-full bg-[#0a0a0a] border border-white/20 rounded-lg px-4 py-2 text-white placeholder-gray-500 outline-none focus:border-[#F47F20] focus:bg-black focus:ring-1 focus:ring-[#F47F20]/50 transition-all text-sm;
 }
+
 .input-select {
-    @apply w-full bg-[#0F0F0F] border border-white/5 rounded-lg px-4 py-3 text-xs text-gray-300 focus:border-[#F47F20]/50 outline-none appearance-none cursor-pointer;
+    @apply w-full bg-[#0F0F0F] border border-white/10 rounded-lg px-4 py-3 text-xs text-gray-300 focus:border-[#F47F20]/50 outline-none appearance-none cursor-pointer hover:border-white/20 transition-colors;
 }
+
 .label-tiny {
-    @apply text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-2 block ml-1;
+    @apply text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-2 block ml-1; /* gray-500 -> gray-400 */
 }
+
 .btn-secondary {
-    @apply border border-white/20 hover:bg-white/5 text-gray-300 hover:text-white px-4 py-2 rounded text-xs font-bold uppercase tracking-wider transition flex items-center;
+    @apply border border-white/20 hover:bg-white/10 text-gray-300 hover:text-white px-4 py-2 rounded text-xs font-bold uppercase tracking-wider transition flex items-center shadow-sm;
 }
+
 .btn-icon-save {
-    @apply h-[46px] w-[46px] flex items-center justify-center rounded-lg border border-white/5 bg-[#0F0F0F] text-gray-500 hover:text-[#F47F20] hover:border-[#F47F20]/30 hover:bg-[#F47F20]/10 transition-all;
+    @apply h-[46px] w-[46px] flex items-center justify-center rounded-lg border border-white/10 bg-[#0F0F0F] text-gray-400 hover:text-[#F47F20] hover:border-[#F47F20]/50 hover:bg-[#F47F20]/10 transition-all shadow-sm;
 }
 
 .glass-panel {
-    background: rgba(30, 30, 30, 0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(30, 30, 30, 0.75); /* Mais opacidade para leitura */
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Botão Premium */
@@ -52,17 +58,16 @@ html, body {
 }
 .btn-premium:active { transform: translateY(0); }
 
-/* Custom Scrollbar */
-.custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: #1E1E1E; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #F47F20; }
+/* Custom Scrollbar - Mais visível */
+.custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #1a1a1a; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; border: 2px solid #1a1a1a; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #777; }
 
-/* Animações */
+/* Animações mantidas */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
 
-/* Indicador Ao Vivo */
 @keyframes live-pulse {
   0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
   70% { box-shadow: 0 0 0 10px rgba(244, 67, 54, 0); }
@@ -70,32 +75,22 @@ html, body {
 }
 .animate-live { animation: live-pulse 2s infinite; }
 
-/* Opcional: Pulso mais suave para esqueletos */
-@keyframes pulse-soft {
-  0%, 100% { opacity: 0.1; }
-  50% { opacity: 0.2; }
-}
-.skeleton-pulse {
-  animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
 :root {
-    color-scheme: dark; /* Força o popup nativo do calendário a ser escuro */
+    color-scheme: dark;
 }
 
 input[type="date"] {
     position: relative;
 }
 
-/* Deixa o ícone do calendário branco (invertendo o preto padrão) */
 input[type="date"]::-webkit-calendar-picker-indicator {
     filter: invert(1);
-    opacity: 0.6;
+    opacity: 0.7; /* Aumentei a opacidade base */
     cursor: pointer;
     transition: opacity 0.2s;
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator:hover {
     opacity: 1;
-    filter: invert(1) drop-shadow(0 0 2px rgba(244, 127, 32, 0.5)); /* Glow laranja no hover */
+    filter: invert(1) drop-shadow(0 0 2px rgba(244, 127, 32, 0.8));
 }

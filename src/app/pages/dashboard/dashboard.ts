@@ -2,13 +2,13 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
-import { FormsModule } from '@angular/forms'; // Importante para ngModel
+import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, BaseChartDirective, FormsModule], // Adicione FormsModule
+  imports: [CommonModule, BaseChartDirective, FormsModule],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss']
 })
@@ -23,8 +23,14 @@ export class DashboardComponent implements OnInit {
   customEnd: string = '';
   
   totalOccurrences: number = 0;
+  isLoading = false; // Novo estado de loading
 
-  // --- Opções dos Gráficos (Mantidas) ---
+  // --- Opções de UI para os Gráficos ---
+  private commonOptions = {
+    color: '#9CA3AF', // Cor padrão do texto (gray-400)
+    font: { family: "'Segoe UI', 'Roboto', sans-serif", size: 11 }
+  };
+
   public barChartOptions: ChartConfiguration<'bar'>['options'] = {
     indexAxis: 'y',
     responsive: true,
@@ -32,15 +38,26 @@ export class DashboardComponent implements OnInit {
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: 'rgba(20, 20, 20, 0.9)',
-        borderColor: 'rgba(244, 127, 32, 0.3)',
+        backgroundColor: '#1E1E1E',
+        titleColor: '#F47F20',
+        bodyColor: '#E0E0E0',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
         borderWidth: 1,
+        padding: 12,
+        cornerRadius: 8,
+        displayColors: false,
         callbacks: { label: (c) => ` ${c.raw} ocorrências` }
       }
     },
     scales: {
-      x: { grid: { color: '#333', tickLength: 0 }, ticks: { color: '#666', font: { family: 'Consolas' } } },
-      y: { grid: { display: false }, ticks: { color: '#E0E0E0', font: { weight: 'bold' } } }
+      x: { 
+        grid: { color: '#333333', tickLength: 0 }, // Grid mais visível
+        ticks: { color: '#9CA3AF' } // Texto mais claro
+      },
+      y: { 
+        grid: { display: false }, 
+        ticks: { color: '#F3F4F6', font: { weight: 'bold', size: 12 } } // Labels principais brancas
+      }
     },
     elements: { bar: { borderRadius: 4 } }
   };
@@ -51,10 +68,16 @@ export class DashboardComponent implements OnInit {
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: 'rgba(20, 20, 20, 0.9)',
+        backgroundColor: '#1E1E1E',
+        titleColor: '#F47F20',
+        bodyColor: '#E0E0E0',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderWidth: 1,
+        padding: 12,
+        cornerRadius: 8,
         callbacks: { 
             title: (items) => {
-                const label = items[0].label;
+                const label = items[0].label as string;
                 if(label.includes('Nível X')) return 'Crítico Extremo (>= 60s)';
                 if(label.includes('Nível A')) return 'Alto Risco (10s - 59s)';
                 if(label.includes('Nível B')) return 'Médio Risco (5s - 9s)';
@@ -65,8 +88,14 @@ export class DashboardComponent implements OnInit {
       }
     },
     scales: {
-      y: { grid: { color: '#333' }, ticks: { color: '#888', stepSize: 1 } },
-      x: { grid: { display: false }, ticks: { color: '#E0E0E0', font: { weight: 'bold' } } }
+      y: { 
+        grid: { color: '#333333' }, 
+        ticks: { color: '#9CA3AF', stepSize: 1 } 
+      },
+      x: { 
+        grid: { display: false }, 
+        ticks: { color: '#F3F4F6', font: { weight: 'bold' } } 
+      }
     },
     elements: { bar: { borderRadius: 6 } }
   };
@@ -82,7 +111,6 @@ export class DashboardComponent implements OnInit {
 
   setFilter(range: string) {
     this.activeFilter = range;
-    // Se não for custom, carrega imediatamente
     if (range !== 'custom') {
       this.fetchData();
     }
@@ -97,15 +125,23 @@ export class DashboardComponent implements OnInit {
   }
 
   fetchData() {
-    this.api.getDashboardSummary(this.activeFilter, this.customStart, this.customEnd).subscribe(res => {
-      this.summary = res;
-      this.totalOccurrences = (res.fault_type_distribution || []).reduce((acc: number, curr: any) => acc + curr.count, 0);
-      this.updateCharts(res);
+    this.isLoading = true;
+    this.api.getDashboardSummary(this.activeFilter, this.customStart, this.customEnd).subscribe({
+      next: (res) => {
+        this.summary = res;
+        this.totalOccurrences = (res.fault_type_distribution || []).reduce((acc: number, curr: any) => acc + curr.count, 0);
+        this.updateCharts(res);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.isLoading = false;
+      }
     });
   }
 
   updateCharts(res: any) {
-    // 1. Gráfico de Tipos
+    // 1. Tipos de Falha
     const types = res.fault_type_distribution.map((x: any) => x.type);
     const counts = res.fault_type_distribution.map((x: any) => x.count);
     
@@ -114,25 +150,26 @@ export class DashboardComponent implements OnInit {
       datasets: [{ 
         data: counts, 
         label: 'Falhas', 
-        backgroundColor: '#F47F20',
+        backgroundColor: '#F47F20', // Laranja Globo
         hoverBackgroundColor: '#FF9800',
         barPercentage: 0.6,
         categoryPercentage: 0.8
       }]
     };
 
-    // 2. Gráfico de Níveis (Ordenado C -> X)
+    // 2. Níveis de Severidade
     const severityOrder = ['C', 'B', 'A', 'X'];
     const rawData = res.level_distribution || [];
     
+    // Ordenação correta
     rawData.sort((a: any, b: any) => severityOrder.indexOf(a.level) - severityOrder.indexOf(b.level));
 
     const mapColor = (sigla: string) => {
         switch(sigla) {
-          case 'C': return '#3B82F6';
-          case 'B': return '#FACC15';
-          case 'A': return '#F97316';
-          case 'X': return '#EF4444';
+          case 'C': return '#3B82F6'; // Blue-500
+          case 'B': return '#FACC15'; // Yellow-400
+          case 'A': return '#F97316'; // Orange-500
+          case 'X': return '#EF4444'; // Red-500
           default: return '#666';
         }
     };
@@ -151,6 +188,7 @@ export class DashboardComponent implements OnInit {
       datasets: [{ 
         data: rawData.map((x: any) => x.count), 
         backgroundColor: rawData.map((x: any) => mapColor(x.level)),
+        hoverBackgroundColor: rawData.map((x: any) => mapColor(x.level) + 'DD'), // Efeito hover
         barPercentage: 0.5,
         borderRadius: 4
       }]

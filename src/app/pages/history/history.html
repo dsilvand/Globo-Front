@@ -1,87 +1,81 @@
-<div class="p-8 text-white h-full flex flex-col bg-[#0F0F0F]">
+<div class="p-8 text-white h-full flex flex-col bg-[#0F0F0F] overflow-hidden">
   
-  <div class="flex justify-between items-end mb-8">
+  <div class="flex justify-between items-end mb-8 shrink-0">
     <div>
       <h1 class="text-3xl font-bold mb-1 flex items-center gap-3">
-        <span class="w-1 h-8 bg-[#F47F20]"></span> Histórico de Análise
+        <span class="w-1.5 h-8 bg-[#F47F20] rounded-full"></span> Histórico de Análise
       </h1>
-      <p class="text-gray-500 text-sm ml-4">Auditoria e validação de falhas detectadas.</p>
+      <p class="text-gray-400 text-sm ml-5">Auditoria e validação completa de falhas detectadas.</p>
     </div>
     
     <div class="flex gap-3">
-      <button (click)="download('csv')" class="btn-secondary">
-        <i class="fas fa-table text-green-500/80 mr-2"></i> CSV
+      <button (click)="download('csv')" class="btn-secondary hover:border-green-500/50 hover:text-green-400">
+        <i class="fas fa-table mr-2"></i> CSV
       </button>
-      <button (click)="download('pdf')" class="btn-secondary">
-        <i class="fas fa-file-pdf text-red-500/80 mr-2"></i> PDF
+      <button (click)="download('pdf')" class="btn-secondary hover:border-red-500/50 hover:text-red-400">
+        <i class="fas fa-file-pdf mr-2"></i> PDF
       </button>
     </div>
   </div>
 
-  <div class="bg-[#181818] p-5 rounded-xl border border-white/5 mb-6 flex flex-wrap gap-4 items-end shadow-lg">
+  <div class="bg-[#181818] p-5 rounded-xl border border-white/5 mb-6 flex flex-wrap gap-4 items-end shadow-lg shrink-0">
     
     <div class="flex-1 min-w-[180px]">
       <label class="label-tiny">Período Inicial</label>
       <div class="relative group">
-        <input type="date" 
-               #pickerStart
-               (click)="pickerStart.showPicker()"
-               [(ngModel)]="filters.start_date" 
-               class="input-dark cursor-pointer font-mono text-gray-300 focus:text-white">
+        <input type="date" #pickerStart (click)="pickerStart.showPicker()" [(ngModel)]="filters.start_date" 
+               class="input-dark cursor-pointer font-mono">
       </div>
     </div>
 
     <div class="flex-1 min-w-[180px]">
       <label class="label-tiny">Período Final</label>
       <div class="relative group">
-        <input type="date" 
-               #pickerEnd
-               (click)="pickerEnd.showPicker()"
-               [(ngModel)]="filters.end_date" 
-               class="input-dark cursor-pointer font-mono text-gray-300 focus:text-white">
+        <input type="date" #pickerEnd (click)="pickerEnd.showPicker()" [(ngModel)]="filters.end_date" 
+               class="input-dark cursor-pointer font-mono">
       </div>
     </div>
 
     <div class="flex-1 min-w-[180px]">
       <label class="label-tiny">Status</label>
       <div class="relative">
-        <select [(ngModel)]="filters.status" class="input-select py-2 pl-4 pr-10">
+        <select [(ngModel)]="filters.status" class="input-select py-2 pl-4 pr-10 bg-[#0a0a0a]">
           <option value="">Todos os Status</option>
           <option value="Aprovado">Aprovado</option>
           <option value="Rejeitado">Rejeitado</option>
           <option value="Não Validado">Não Validado</option>
         </select>
-        <i class="fas fa-chevron-down absolute right-4 top-3 text-gray-500 text-xs pointer-events-none"></i>
+        <i class="fas fa-chevron-down absolute right-4 top-3 text-gray-400 text-xs pointer-events-none"></i>
       </div>
     </div>
     
-    <button (click)="loadData()" class="px-8 py-2 rounded-lg bg-[#F47F20] hover:bg-[#D86810] text-white font-bold text-sm h-[38px] transition-all duration-300 shadow-[0_0_10px_rgba(244,127,32,0.1)] hover:shadow-[0_0_15px_rgba(244,127,32,0.4)]">
+    <button (click)="loadData()" class="px-8 py-2 rounded-lg bg-[#F47F20] hover:bg-[#D86810] text-white font-bold text-sm h-[38px] transition-all duration-300 shadow-[0_0_15px_rgba(244,127,32,0.2)] hover:shadow-[0_0_20px_rgba(244,127,32,0.4)] border border-[#F47F20]/50">
       FILTRAR
     </button>
   </div>
 
-  <div class="bg-[#181818] rounded-xl border border-white/5 overflow-hidden flex-1 flex flex-col shadow-2xl">
-    <div class="overflow-x-auto flex-1 custom-scrollbar">
+  <div class="bg-[#181818] rounded-xl border border-white/5 flex-1 flex flex-col shadow-2xl min-h-0">
+    <div class="overflow-auto flex-1 custom-scrollbar">
       <table class="w-full text-left border-collapse">
-        <thead class="sticky top-0 bg-[#121212] z-10 shadow-sm">
-          <tr class="text-gray-500 text-[10px] uppercase tracking-widest font-bold">
-            <th class="p-4 pl-6">Data</th>
-            <th class="p-4">Hora</th>
-            <th class="p-4">Programa</th>
-            <th class="p-4">Falha</th>
-            <th class="p-4">Severidade</th>
-            <th class="p-4">Status</th>
-            <th class="p-4 text-center">Ações</th>
+        <thead class="sticky top-0 bg-[#151515] z-10 shadow-md ring-1 ring-white/5">
+          <tr class="text-gray-400 text-[10px] uppercase tracking-widest font-bold">
+            <th class="p-4 pl-6 border-b border-white/5">Data</th>
+            <th class="p-4 border-b border-white/5">Hora</th>
+            <th class="p-4 border-b border-white/5">Programa</th>
+            <th class="p-4 border-b border-white/5">Falha</th>
+            <th class="p-4 border-b border-white/5">Severidade</th>
+            <th class="p-4 border-b border-white/5">Status</th>
+            <th class="p-4 border-b border-white/5 text-center">Ações</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-white/5">
-          <tr *ngFor="let item of historyData" class="hover:bg-white/[0.02] transition-colors group">
+          <tr *ngFor="let item of historyData" class="hover:bg-white/[0.04] transition-colors group">
             
-            <td class="p-4 pl-6 text-sm font-mono text-gray-400">{{ item.data_hora | date:'dd/MM/yy' }}</td>
-            <td class="p-4 text-sm font-mono font-bold text-gray-300">{{ item.data_hora | date:'HH:mm:ss' }}</td>
+            <td class="p-4 pl-6 text-sm font-mono text-gray-300">{{ item.data_hora | date:'dd/MM/yy' }}</td>
+            <td class="p-4 text-sm font-mono font-bold text-white">{{ item.data_hora | date:'HH:mm:ss' }}</td>
             
             <td class="p-4 text-sm text-gray-200 font-medium">
-              {{ item.programa || 'Stream Geral' }}
+              {{ item.programa || 'Monitoramento Geral' }}
             </td>
             
             <td class="p-4">
@@ -89,19 +83,19 @@
             </td>
             
             <td class="p-4">
-              <span class="text-[10px] font-bold px-2 py-0.5 rounded border inline-block min-w-[80px] text-center" [ngClass]="{
-                'border-red-500/30 text-red-400 bg-red-500/5': item.nivel === 'Crítico',
-                'border-yellow-500/30 text-yellow-400 bg-yellow-500/5': item.nivel === 'Alerta',
-                'border-green-500/30 text-green-400 bg-green-500/5': item.nivel === 'Info'
+              <span class="text-[10px] font-bold px-2 py-1 rounded border inline-block min-w-[80px] text-center" [ngClass]="{
+                'border-red-500/30 text-red-300 bg-red-500/10': item.nivel === 'Crítico',
+                'border-yellow-500/30 text-yellow-200 bg-yellow-500/10': item.nivel === 'Alerta',
+                'border-blue-500/30 text-blue-300 bg-blue-500/10': item.nivel === 'Info'
               }">{{ item.nivel }}</span>
             </td>
             
             <td class="p-4">
-              <span class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-opacity-10 border"
+              <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border"
                 [ngClass]="{
-                  'bg-green-500 text-green-400 border-green-500/20': item.status === 'Aprovado',
-                  'bg-red-500 text-red-400 border-red-500/20': item.status === 'Rejeitado',
-                  'bg-yellow-500 text-yellow-400 border-yellow-500/20': item.status === 'Não Validado'
+                  'bg-green-500/10 text-green-300 border-green-500/20': item.status === 'Aprovado',
+                  'bg-red-500/10 text-red-300 border-red-500/20': item.status === 'Rejeitado',
+                  'bg-yellow-500/10 text-yellow-200 border-yellow-500/20': item.status === 'Não Validado'
                 }">
                 <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
                 {{ item.status }}
@@ -122,16 +116,26 @@
               </div>
             </td>
           </tr>
+          
+          <tr *ngIf="historyData.length === 0">
+             <td colspan="7" class="p-12 text-center">
+                <div class="flex flex-col items-center justify-center opacity-40">
+                   <i class="fas fa-search text-4xl mb-4 text-gray-500"></i>
+                   <p class="text-sm font-medium text-gray-400">Nenhum registo encontrado para os filtros selecionados.</p>
+                </div>
+             </td>
+          </tr>
+
         </tbody>
       </table>
     </div>
     
-    <div class="p-4 border-t border-white/5 bg-[#121212] flex justify-between items-center text-xs text-gray-500">
-      <span>Total: {{ total }} registos</span>
+    <div class="p-4 border-t border-white/5 bg-[#151515] flex justify-between items-center text-xs text-gray-400">
+      <span>Total: <strong class="text-white">{{ total }}</strong> registos</span>
       <div class="flex gap-2">
-        <button (click)="changePage(-1)" [disabled]="page === 1" class="px-3 py-1 rounded border border-white/10 hover:bg-white/5 disabled:opacity-30 transition">Anterior</button>
-        <span class="px-2 py-1">Pág {{ page }}</span>
-        <button (click)="changePage(1)" class="px-3 py-1 rounded border border-white/10 hover:bg-white/5 transition">Próximo</button>
+        <button (click)="changePage(-1)" [disabled]="page === 1" class="px-3 py-1.5 rounded border border-white/10 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition hover:text-white">Anterior</button>
+        <span class="px-3 py-1.5 bg-white/5 rounded border border-white/5 font-mono text-white">{{ page }}</span>
+        <button (click)="changePage(1)" class="px-3 py-1.5 rounded border border-white/10 hover:bg-white/5 transition hover:text-white">Próximo</button>
       </div>
     </div>
   </div>
