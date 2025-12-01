@@ -55,11 +55,12 @@
             <div class="flex justify-between items-start mb-2">
                 <span class="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider border"
                   [ngClass]="{
-                    'border-red-500/30 text-red-400 bg-red-500/10': occurrence.nivel === 'Crítico',
-                    'border-yellow-500/30 text-yellow-400 bg-yellow-500/10': occurrence.nivel === 'Alerta',
-                    'border-green-500/30 text-green-400 bg-green-500/10': occurrence.nivel === 'Info'
+                    'border-red-500/30 text-red-400 bg-red-500/10': occurrence.nivel === 'X',
+                    'border-orange-500/30 text-orange-400 bg-orange-500/10': occurrence.nivel === 'A',
+                    'border-yellow-500/30 text-yellow-400 bg-yellow-500/10': occurrence.nivel === 'B',
+                    'border-blue-500/30 text-blue-400 bg-blue-500/10': occurrence.nivel === 'C'
                   }">
-                  {{ occurrence.nivel }}
+                  Nível {{ occurrence.nivel }}
                 </span>
                 <span class="text-[10px] text-gray-500 font-mono">{{ occurrence.data_hora | date:'HH:mm:ss' }}</span>
             </div>

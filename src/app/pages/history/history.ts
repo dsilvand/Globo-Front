@@ -12,15 +12,19 @@ import { OccurrenceDetailsComponent } from '../../components/occurrence-details/
   styleUrls: ['./history.scss']
 })
 export class HistoryComponent implements OnInit {
-  // Filtros vinculados aos inputs do HTML
+  // Filtros expandidos conforme solicitado
   filters: any = { 
     start_date: '', 
     end_date: '', 
-    status: '' 
+    status: '',
+    fault_type: '',    // Novo: Texto para busca do tipo
+    level: '',         // Novo: Nível de severidade
+    min_duration: '',  // Novo: Duração mínima
+    max_duration: ''   // Novo: Duração máxima
   };
   
   historyData: any[] = [];
-  selectedOccurrenceId: number | null = null; // Controle do Modal
+  selectedOccurrenceId: number | null = null;
   
   // Paginação
   page = 1;
@@ -34,6 +38,7 @@ export class HistoryComponent implements OnInit {
   }
 
   loadData() {
+    // A limpeza de filtros vazios já é feita no ApiService (check keys)
     this.api.getHistory(this.filters, this.page, this.pageSize).subscribe({
       next: (res) => {
         this.historyData = res.data;
@@ -49,7 +54,7 @@ export class HistoryComponent implements OnInit {
     if(!confirm('Deseja realmente aprovar esta ocorrência?')) return;
     
     this.api.updateStatus(id, 'Aprovado').subscribe(() => {
-      this.loadData(); // Recarrega para atualizar o status na tela
+      this.loadData();
     });
   }
 
@@ -63,7 +68,6 @@ export class HistoryComponent implements OnInit {
 
   download(type: 'csv' | 'pdf') {
     const url = this.api.getExportUrl(type, this.filters);
-    // Abre em nova aba para iniciar o download
     window.open(url, '_blank');
   }
 

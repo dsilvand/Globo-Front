@@ -1,6 +1,6 @@
 <div class="p-8 text-white h-full flex flex-col bg-[#0F0F0F] overflow-hidden">
   
-  <div class="flex justify-between items-end mb-8 shrink-0">
+  <div class="flex justify-between items-end mb-6 shrink-0">
     <div>
       <h1 class="text-3xl font-bold mb-1 flex items-center gap-3">
         <span class="w-1.5 h-8 bg-[#F47F20] rounded-full"></span> Histórico de Análise
@@ -18,40 +18,82 @@
     </div>
   </div>
 
-  <div class="bg-[#181818] p-5 rounded-xl border border-white/5 mb-6 flex flex-wrap gap-4 items-end shadow-lg shrink-0">
+  <div class="bg-[#181818] p-5 rounded-xl border border-white/5 mb-6 shadow-lg shrink-0">
     
-    <div class="flex-1 min-w-[180px]">
-      <label class="label-tiny">Período Inicial</label>
-      <div class="relative group">
-        <input type="date" #pickerStart (click)="pickerStart.showPicker()" [(ngModel)]="filters.start_date" 
-               class="input-dark cursor-pointer font-mono">
+    <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-8 gap-4 items-end">
+      
+      <div class="lg:col-span-2">
+        <label class="label-tiny">Período Inicial</label>
+        <div class="relative group">
+          <input type="date" #pickerStart (click)="pickerStart.showPicker()" [(ngModel)]="filters.start_date" 
+                 class="input-dark cursor-pointer font-mono">
+        </div>
       </div>
-    </div>
 
-    <div class="flex-1 min-w-[180px]">
-      <label class="label-tiny">Período Final</label>
-      <div class="relative group">
-        <input type="date" #pickerEnd (click)="pickerEnd.showPicker()" [(ngModel)]="filters.end_date" 
-               class="input-dark cursor-pointer font-mono">
+      <div class="lg:col-span-2">
+        <label class="label-tiny">Período Final</label>
+        <div class="relative group">
+          <input type="date" #pickerEnd (click)="pickerEnd.showPicker()" [(ngModel)]="filters.end_date" 
+                 class="input-dark cursor-pointer font-mono">
+        </div>
       </div>
-    </div>
 
-    <div class="flex-1 min-w-[180px]">
-      <label class="label-tiny">Status</label>
-      <div class="relative">
-        <select [(ngModel)]="filters.status" class="input-select py-2 pl-4 pr-10 bg-[#0a0a0a]">
-          <option value="">Todos os Status</option>
-          <option value="Aprovado">Aprovado</option>
-          <option value="Rejeitado">Rejeitado</option>
-          <option value="Não Validado">Não Validado</option>
-        </select>
-        <i class="fas fa-chevron-down absolute right-4 top-3 text-gray-400 text-xs pointer-events-none"></i>
+      <div class="lg:col-span-2">
+        <label class="label-tiny">Status</label>
+        <div class="relative">
+          <select [(ngModel)]="filters.status" class="input-select py-2 pl-4 pr-10 bg-[#0a0a0a]">
+            <option value="">Todos</option>
+            <option value="Aprovado">Aprovado</option>
+            <option value="Rejeitado">Rejeitado</option>
+            <option value="Não Validado">Não Validado</option>
+          </select>
+          <i class="fas fa-chevron-down absolute right-4 top-3 text-gray-400 text-xs pointer-events-none"></i>
+        </div>
       </div>
+
+      <div class="lg:col-span-2">
+        <label class="label-tiny">Severidade</label>
+        <div class="relative">
+          <select [(ngModel)]="filters.level" class="input-select py-2 pl-4 pr-10 bg-[#0a0a0a] font-mono text-[11px]">
+            <option value="">Todas</option>
+            <option value="X">Nível X (≥ 60s)</option>
+            <option value="A">Nível A (10-59s)</option>
+            <option value="B">Nível B (5-9s)</option>
+            <option value="C">Nível C (≤ 4s)</option>
+          </select>
+          <i class="fas fa-exclamation-triangle absolute right-4 top-3 text-gray-400 text-xs pointer-events-none"></i>
+        </div>
+      </div>
+
+      <div class="lg:col-span-3">
+        <label class="label-tiny">Tipo de Falha</label>
+        <div class="relative">
+          <input type="text" [(ngModel)]="filters.fault_type" placeholder="Ex: Audio Ausente..." 
+                 class="input-dark placeholder-gray-600">
+          <i class="fas fa-search absolute right-3 top-2.5 text-gray-500 text-xs"></i>
+        </div>
+      </div>
+
+      <div class="lg:col-span-3 grid grid-cols-2 gap-2">
+        <div>
+          <label class="label-tiny">Duração Min (s)</label>
+          <input type="number" [(ngModel)]="filters.min_duration" placeholder="0" 
+                 class="input-dark text-center font-mono">
+        </div>
+        <div>
+          <label class="label-tiny">Duração Max (s)</label>
+          <input type="number" [(ngModel)]="filters.max_duration" placeholder="∞" 
+                 class="input-dark text-center font-mono">
+        </div>
+      </div>
+
+      <div class="lg:col-span-2">
+        <button (click)="loadData()" class="w-full h-[38px] rounded-lg bg-[#F47F20] hover:bg-[#D86810] text-white font-bold text-sm transition-all duration-300 shadow-[0_0_15px_rgba(244,127,32,0.2)] hover:shadow-[0_0_20px_rgba(244,127,32,0.4)] border border-[#F47F20]/50 flex items-center justify-center gap-2">
+          <i class="fas fa-filter"></i> APLICAR
+        </button>
+      </div>
+
     </div>
-    
-    <button (click)="loadData()" class="px-8 py-2 rounded-lg bg-[#F47F20] hover:bg-[#D86810] text-white font-bold text-sm h-[38px] transition-all duration-300 shadow-[0_0_15px_rgba(244,127,32,0.2)] hover:shadow-[0_0_20px_rgba(244,127,32,0.4)] border border-[#F47F20]/50">
-      FILTRAR
-    </button>
   </div>
 
   <div class="bg-[#181818] rounded-xl border border-white/5 flex-1 flex flex-col shadow-2xl min-h-0">
@@ -84,10 +126,11 @@
             
             <td class="p-4">
               <span class="text-[10px] font-bold px-2 py-1 rounded border inline-block min-w-[80px] text-center" [ngClass]="{
-                'border-red-500/30 text-red-300 bg-red-500/10': item.nivel === 'Crítico',
-                'border-yellow-500/30 text-yellow-200 bg-yellow-500/10': item.nivel === 'Alerta',
-                'border-blue-500/30 text-blue-300 bg-blue-500/10': item.nivel === 'Info'
-              }">{{ item.nivel }}</span>
+                'border-red-500/30 text-red-300 bg-red-500/10': item.nivel === 'X',
+                'border-orange-500/30 text-orange-300 bg-orange-500/10': item.nivel === 'A',
+                'border-yellow-500/30 text-yellow-200 bg-yellow-500/10': item.nivel === 'B',
+                'border-blue-500/30 text-blue-300 bg-blue-500/10': item.nivel === 'C'
+              }">Nível {{ item.nivel }}</span>
             </td>
             
             <td class="p-4">
@@ -121,11 +164,10 @@
              <td colspan="7" class="p-12 text-center">
                 <div class="flex flex-col items-center justify-center opacity-40">
                    <i class="fas fa-search text-4xl mb-4 text-gray-500"></i>
-                   <p class="text-sm font-medium text-gray-400">Nenhum registo encontrado para os filtros selecionados.</p>
+                   <p class="text-sm font-medium text-gray-400">Nenhum registo encontrado.</p>
                 </div>
              </td>
           </tr>
-
         </tbody>
       </table>
     </div>
