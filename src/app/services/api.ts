@@ -62,6 +62,15 @@ export class ApiService {
     return this.http.get(`${this.baseUrl}/occurrences/historico/`, { params });
   }
 
+  deleteHistory(filters: any): Observable<any> {
+    let params = new HttpParams();
+    // Repassa todos os filtros ativos para garantir que só apague o que o usuário vê
+    Object.keys(filters).forEach(key => {
+      if (filters[key]) params = params.set(key, filters[key]);
+    });
+    return this.http.delete(`${this.baseUrl}/occurrences/historico/`, { params });
+  }
+
   updateStatus(id: number, status: string): Observable<any> {
     return this.http.put(`${this.baseUrl}/occurrences/${id}/status`, { status });
   }
