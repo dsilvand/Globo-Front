@@ -7,12 +7,10 @@ import { io, Socket } from 'socket.io-client';
   providedIn: 'root'
 })
 export class ApiService {
-  // URL do seu Backend Python
   private baseUrl = 'http://localhost:8000/api/v1';
   private socket: Socket;
 
   constructor(private http: HttpClient) {
-    // Conexão WebSocket para alertas em tempo real
     this.socket = io('http://localhost:8000', {
       transports: ['websocket']
     });
@@ -27,7 +25,7 @@ export class ApiService {
     });
   }
 
-  // --- Settings (settings.py) ---
+  // --- Settings ---
   getMonitoringMode(): Observable<any> {
     return this.http.get(`${this.baseUrl}/settings/monitoring-mode`);
   }
@@ -36,11 +34,17 @@ export class ApiService {
     return this.http.put(`${this.baseUrl}/settings/monitoring-mode`, data);
   }
 
+  // NOVO: Controle Global da IA
+  toggleAIProcessing(active: boolean): Observable<any> {
+    // Exemplo de endpoint. Ajuste conforme seu backend real.
+    return this.http.put(`${this.baseUrl}/settings/ai-status`, { active });
+  }
+
   listDevices(): Observable<any> {
     return this.http.get(`${this.baseUrl}/settings/devices`);
   }
 
-  // --- Live Stream (live.py & hls_streamer.py) ---
+  // --- Live Stream ---
   startLiveStream(): Observable<any> {
     return this.http.post(`${this.baseUrl}/live/start`, {});
   }
@@ -49,7 +53,7 @@ export class ApiService {
     return this.http.get(`${this.baseUrl}/live/status`);
   }
 
-  // --- Ocorrências (occurrences.py) ---
+  // --- Ocorrências ---
   getRecentOccurrences(): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/occurrences/`);
   }
@@ -64,7 +68,6 @@ export class ApiService {
 
   deleteHistory(filters: any): Observable<any> {
     let params = new HttpParams();
-    // Repassa todos os filtros ativos para garantir que só apague o que o usuário vê
     Object.keys(filters).forEach(key => {
       if (filters[key]) params = params.set(key, filters[key]);
     });
@@ -79,7 +82,6 @@ export class ApiService {
     return this.http.get(`${this.baseUrl}/occurrences/${id}`);
   }
 
-  // --- Exportação ---
   getExportUrl(type: 'csv' | 'pdf', filters: any): string {
     let params = new URLSearchParams();
     Object.keys(filters).forEach(key => {
@@ -88,17 +90,12 @@ export class ApiService {
     return `${this.baseUrl}/occurrences/export/${type}?${params.toString()}`;
   }
 
-  // --- Dashboard (dashboard.py) ---
-  // ATUALIZADO: Agora aceita start e end opcionais para o filtro 'Período'
   getDashboardSummary(range: string = 'today', start?: string, end?: string): Observable<any> {
     let params = new HttpParams().set('range', range);
-    
-    // Se o range for 'custom' e as datas existirem, adiciona aos parâmetros da requisição
     if (range === 'custom' && start && end) {
       params = params.set('start_date', start);
       params = params.set('end_date', end);
     }
-
     return this.http.get(`${this.baseUrl}/dashboard/summary`, { params });
   }
 }
