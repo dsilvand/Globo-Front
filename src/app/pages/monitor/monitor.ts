@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy, HostListener, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api';
@@ -25,26 +25,40 @@ export class MonitorComponent implements OnInit, OnDestroy {
   
   isPlaying = false;
   isMuted = true;
+  isBeepMuted = false;
   
-  // NOVO: Controle de Mudo do Bip
-  isBeepMuted = false; 
+  private audioUnlocked = false;
+  private refreshInterval: any; // <--- Variável para o timer
 
   hls: Hls | null = null;
-  private alertSound = new Audio('assets/beep.mp3');
+  private alertSound = new Audio('assets/beep2.mp3');
 
-  constructor(private api: ApiService, private toast: ToastService) {}
+  constructor(
+    private api: ApiService, 
+    private toast: ToastService,
+    private ngZone: NgZone
+  ) {}
 
   ngOnInit() {
     this.loadSettings();
     this.loadDevices();
-    this.loadRecent();
+    this.loadRecent(); // Carrega a primeira vez
 
     this.alertSound.volume = 0.5;
 
+    // --- SOLUÇÃO POLLING (AUTO-REFRESH DE DADOS) ---
+    // A cada 3 segundos, busca novas ocorrências silenciosamente
+    this.ngZone.runOutsideAngular(() => {
+      this.refreshInterval = setInterval(() => {
+        this.ngZone.run(() => {
+          this.checkForNewData();
+        });
+      }, 3000);
+    });
+
+    // Mantém o socket como "plano B" ou para notificações instantâneas se funcionar
     this.api.onNewOccurrence().subscribe(data => {
-      this.recentOccurrences.unshift(data);
-      this.recentOccurrences = this.recentOccurrences.slice(0, 10);
-      this.playBeep();
+       this.handleNewOccurrence(data);
     });
 
     this.api.getLiveStatus().subscribe(res => {
@@ -54,30 +68,77 @@ export class MonitorComponent implements OnInit, OnDestroy {
     });
   }
 
-  playBeep() {
-    // NOVO: Verifica se está silenciado antes de tocar
-    if (this.isBeepMuted) return;
+  // Lógica separada para verificar dados
+  checkForNewData() {
+    this.api.getRecentOccurrences().subscribe(newList => {
+      // Se a lista nova for diferente da atual (ex: tem um item novo no topo)
+      if (newList.length > 0 && this.recentOccurrences.length > 0) {
+        const firstCurrent = this.recentOccurrences[0];
+        const firstNew = newList[0];
 
-    this.alertSound.currentTime = 0;
-    this.alertSound.play().catch(e => console.warn('Som de alerta bloqueado pelo navegador:', e));
+        // Compara IDs para saber se chegou algo novo
+        if (firstNew.id !== firstCurrent.id) {
+          console.log('🔄 Polling: Nova ocorrência detectada!');
+          this.recentOccurrences = newList.slice(0, 10);
+          this.playBeep(); // Toca o som!
+        }
+      } else if (newList.length > 0 && this.recentOccurrences.length === 0) {
+         // Primeira carga se estava vazio
+         this.recentOccurrences = newList.slice(0, 10);
+      }
+    });
   }
 
-  // NOVO: Alterna o estado do bip
+  handleNewOccurrence(data: any) {
+    this.ngZone.run(() => {
+      // Evita duplicatas se o Polling já tiver pego
+      if (this.recentOccurrences.some(o => o.id === data.id)) return;
+
+      this.recentOccurrences.unshift(data);
+      this.recentOccurrences = this.recentOccurrences.slice(0, 10);
+      this.playBeep();
+    });
+  }
+
+  ngOnDestroy() { 
+    this.stopStreamLocal();
+    // Limpa o timer para não travar o navegador
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
+  }
+
+  // ... (RESTO DO CÓDIGO PERMANECE IGUAL: unlockAudio, playBeep, toggleBeepMute, etc.) ...
+  
+  @HostListener('document:click')
+  unlockAudio() {
+    if (this.audioUnlocked) return;
+    this.alertSound.play().then(() => {
+      this.alertSound.pause();
+      this.alertSound.currentTime = 0;
+      this.audioUnlocked = true;
+    }).catch(() => {});
+  }
+
+  playBeep() {
+    if (this.isBeepMuted) return;
+    this.alertSound.currentTime = 0;
+    this.alertSound.play().catch(e => console.warn('Som bloqueado:', e));
+  }
+
   toggleBeepMute() {
     this.isBeepMuted = !this.isBeepMuted;
+    if (!this.isBeepMuted && !this.audioUnlocked) this.unlockAudio(); 
   }
 
   loadSettings() {
-    this.api.getMonitoringMode().subscribe({
-      next: (res) => {
+    this.api.getMonitoringMode().subscribe(res => {
         this.settings = { 
           mode: res.current_mode, 
           srt_url: res.srt_url || '', 
           video_device: res.video_device || '', 
           audio_device: res.audio_device || '' 
         };
-      },
-      error: (err) => console.error('Erro ao carregar configurações', err)
     });
   }
 
@@ -102,11 +163,11 @@ export class MonitorComponent implements OnInit, OnDestroy {
   saveSettings(showFeedback: boolean = true) {
     this.api.setMonitoringMode(this.settings).subscribe({
       next: (res) => {
-        if(showFeedback) this.toast.show('Configurações salvas com sucesso!', 'success');
+        if(showFeedback) this.toast.show('Configurações salvas!', 'success');
         if(this.isPlaying) this.stopStreamLocal();
       },
       error: (err) => {
-        if(showFeedback) this.toast.show('Erro ao salvar: ' + (err.error?.detail || 'Erro'), 'error');
+        if(showFeedback) this.toast.show('Erro ao salvar.', 'error');
       }
     });
   }
@@ -118,7 +179,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
         setTimeout(() => this.initPlayer(), 3000);
       },
       error: (err) => {
-        this.toast.show('Erro ao iniciar stream. Verifique a URL.', 'error');
+        this.toast.show('Erro ao iniciar stream.', 'error');
       }
     });
   }
@@ -133,7 +194,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
   initPlayer() {
     if (this.hls) this.hls.destroy();
     const video = this.videoElement.nativeElement;
-    const hlsUrl = 'http://localhost:8000/hls/index.m3u8'; 
+    const hlsUrl = `http://localhost:8000/hls/index.m3u8?time=${Date.now()}`; 
 
     if (Hls.isSupported()) {
       this.hls = new Hls({ enableWorker: true, lowLatencyMode: true });
@@ -141,7 +202,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
       this.hls.attachMedia(video);
       this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
         video.muted = this.isMuted;
-        video.play().catch(e => console.warn("Autoplay block:", e));
+        video.play().catch(() => {});
         this.isPlaying = true;
       });
       this.hls.on(Hls.Events.ERROR, (event, data) => {
@@ -171,6 +232,4 @@ export class MonitorComponent implements OnInit, OnDestroy {
 
   openDetails(id: number) { this.selectedOccurrenceId = id; }
   closeDetails() { this.selectedOccurrenceId = null; }
-  
-  ngOnDestroy() { this.stopStreamLocal(); }
 }
