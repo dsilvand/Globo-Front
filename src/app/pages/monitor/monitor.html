@@ -115,9 +115,9 @@
 
       <button (click)="toggleBeepMute()" 
               class="w-8 h-8 rounded flex items-center justify-center transition-colors border border-transparent hover:border-white/10 hover:bg-white/5"
-              [ngClass]="isBeepMuted ? 'text-gray-500' : 'text-[#F47F20]'"
-              [title]="isBeepMuted ? 'Ativar sons de alerta' : 'Silenciar alertas'">
-        <i class="fas" [ngClass]="isBeepMuted ? 'fa-bell-slash' : 'fa-bell'"></i>
+              [ngClass]="soundService.isMuted() ? 'text-gray-500' : 'text-[#F47F20]'"
+              [title]="soundService.isMuted() ? 'Ativar sons de alerta' : 'Silenciar alertas'">
+        <i class="fas" [ngClass]="soundService.isMuted() ? 'fa-bell-slash' : 'fa-bell'"></i>
       </button>
 
     </div>

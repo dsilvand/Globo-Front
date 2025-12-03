@@ -1,8 +1,9 @@
-import { Component, OnInit, ViewChild, ElementRef, OnDestroy, HostListener, NgZone } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api';
 import { ToastService } from '../../services/toast.service';
+import { SoundService } from '../../services/sound.service'; // <--- IMPORTAR
 import { OccurrenceDetailsComponent } from '../../components/occurrence-details/occurrence-details';
 import Hls from 'hls.js';
 
@@ -25,29 +26,25 @@ export class MonitorComponent implements OnInit, OnDestroy {
   
   isPlaying = false;
   isMuted = true;
-  isBeepMuted = false;
+  // isBeepMuted removido, usamos o soundService
   
-  private audioUnlocked = false;
-  private refreshInterval: any; // <--- Variável para o timer
-
+  private refreshInterval: any; 
   hls: Hls | null = null;
-  private alertSound = new Audio('assets/beep2.mp3');
+  // alertSound removido
 
   constructor(
     private api: ApiService, 
     private toast: ToastService,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    public soundService: SoundService // <--- Public para usar no HTML
   ) {}
 
   ngOnInit() {
     this.loadSettings();
     this.loadDevices();
-    this.loadRecent(); // Carrega a primeira vez
+    this.loadRecent();
 
-    this.alertSound.volume = 0.5;
-
-    // --- SOLUÇÃO POLLING (AUTO-REFRESH DE DADOS) ---
-    // A cada 3 segundos, busca novas ocorrências silenciosamente
+    // POLLING (Mantido para atualização de dados)
     this.ngZone.runOutsideAngular(() => {
       this.refreshInterval = setInterval(() => {
         this.ngZone.run(() => {
@@ -56,7 +53,7 @@ export class MonitorComponent implements OnInit, OnDestroy {
       }, 3000);
     });
 
-    // Mantém o socket como "plano B" ou para notificações instantâneas se funcionar
+    // SOCKET (Mantido para atualização visual instantânea)
     this.api.onNewOccurrence().subscribe(data => {
        this.handleNewOccurrence(data);
     });
@@ -68,22 +65,14 @@ export class MonitorComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Lógica separada para verificar dados
   checkForNewData() {
     this.api.getRecentOccurrences().subscribe(newList => {
-      // Se a lista nova for diferente da atual (ex: tem um item novo no topo)
       if (newList.length > 0 && this.recentOccurrences.length > 0) {
-        const firstCurrent = this.recentOccurrences[0];
-        const firstNew = newList[0];
-
-        // Compara IDs para saber se chegou algo novo
-        if (firstNew.id !== firstCurrent.id) {
-          console.log('🔄 Polling: Nova ocorrência detectada!');
+        if (newList[0].id !== this.recentOccurrences[0].id) {
           this.recentOccurrences = newList.slice(0, 10);
-          this.playBeep(); // Toca o som!
+          // this.playBeep() REMOVIDO -> AppComponent já faz isso
         }
       } else if (newList.length > 0 && this.recentOccurrences.length === 0) {
-         // Primeira carga se estava vazio
          this.recentOccurrences = newList.slice(0, 10);
       }
     });
@@ -91,46 +80,18 @@ export class MonitorComponent implements OnInit, OnDestroy {
 
   handleNewOccurrence(data: any) {
     this.ngZone.run(() => {
-      // Evita duplicatas se o Polling já tiver pego
       if (this.recentOccurrences.some(o => o.id === data.id)) return;
-
       this.recentOccurrences.unshift(data);
       this.recentOccurrences = this.recentOccurrences.slice(0, 10);
-      this.playBeep();
+      // this.playBeep() REMOVIDO -> AppComponent já faz isso
     });
   }
 
-  ngOnDestroy() { 
-    this.stopStreamLocal();
-    // Limpa o timer para não travar o navegador
-    if (this.refreshInterval) {
-      clearInterval(this.refreshInterval);
-    }
-  }
-
-  // ... (RESTO DO CÓDIGO PERMANECE IGUAL: unlockAudio, playBeep, toggleBeepMute, etc.) ...
-  
-  @HostListener('document:click')
-  unlockAudio() {
-    if (this.audioUnlocked) return;
-    this.alertSound.play().then(() => {
-      this.alertSound.pause();
-      this.alertSound.currentTime = 0;
-      this.audioUnlocked = true;
-    }).catch(() => {});
-  }
-
-  playBeep() {
-    if (this.isBeepMuted) return;
-    this.alertSound.currentTime = 0;
-    this.alertSound.play().catch(e => console.warn('Som bloqueado:', e));
-  }
-
   toggleBeepMute() {
-    this.isBeepMuted = !this.isBeepMuted;
-    if (!this.isBeepMuted && !this.audioUnlocked) this.unlockAudio(); 
+    this.soundService.toggleMute();
   }
 
+  // Métodos de vídeo e setup (Mantidos iguais)
   loadSettings() {
     this.api.getMonitoringMode().subscribe(res => {
         this.settings = { 
@@ -232,4 +193,9 @@ export class MonitorComponent implements OnInit, OnDestroy {
 
   openDetails(id: number) { this.selectedOccurrenceId = id; }
   closeDetails() { this.selectedOccurrenceId = null; }
+  
+  ngOnDestroy() { 
+    this.stopStreamLocal();
+    if (this.refreshInterval) clearInterval(this.refreshInterval);
+  }
 }
