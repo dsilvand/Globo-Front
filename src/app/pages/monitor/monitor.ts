@@ -25,7 +25,12 @@ export class MonitorComponent implements OnInit, OnDestroy {
   
   isPlaying = false;
   isMuted = true;
+  
+  // NOVO: Controle de Mudo do Bip
+  isBeepMuted = false; 
+
   hls: Hls | null = null;
+  private alertSound = new Audio('assets/beep.mp3');
 
   constructor(private api: ApiService, private toast: ToastService) {}
 
@@ -34,9 +39,12 @@ export class MonitorComponent implements OnInit, OnDestroy {
     this.loadDevices();
     this.loadRecent();
 
+    this.alertSound.volume = 0.5;
+
     this.api.onNewOccurrence().subscribe(data => {
       this.recentOccurrences.unshift(data);
       this.recentOccurrences = this.recentOccurrences.slice(0, 10);
+      this.playBeep();
     });
 
     this.api.getLiveStatus().subscribe(res => {
@@ -44,6 +52,19 @@ export class MonitorComponent implements OnInit, OnDestroy {
         setTimeout(() => this.initPlayer(), 1000);
       }
     });
+  }
+
+  playBeep() {
+    // NOVO: Verifica se está silenciado antes de tocar
+    if (this.isBeepMuted) return;
+
+    this.alertSound.currentTime = 0;
+    this.alertSound.play().catch(e => console.warn('Som de alerta bloqueado pelo navegador:', e));
+  }
+
+  // NOVO: Alterna o estado do bip
+  toggleBeepMute() {
+    this.isBeepMuted = !this.isBeepMuted;
   }
 
   loadSettings() {
@@ -81,7 +102,6 @@ export class MonitorComponent implements OnInit, OnDestroy {
   saveSettings(showFeedback: boolean = true) {
     this.api.setMonitoringMode(this.settings).subscribe({
       next: (res) => {
-        // Correção aplicada aqui: "guardadas" -> "salvas"
         if(showFeedback) this.toast.show('Configurações salvas com sucesso!', 'success');
         if(this.isPlaying) this.stopStreamLocal();
       },
@@ -94,7 +114,6 @@ export class MonitorComponent implements OnInit, OnDestroy {
   startStream() {
     this.api.startLiveStream().subscribe({
       next: (res) => {
-        // Correção anterior mantida: "Iniciando transmissão..."
         this.toast.show('Iniciando transmissão...', 'info');
         setTimeout(() => this.initPlayer(), 3000);
       },
